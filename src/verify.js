@@ -31,16 +31,16 @@ function pickProvider(area) {
     .concat(paid.map((p) => ({ name: p.provider_name, type: "rent/buy" })));
 
   for (const [label, rx] of PLATFORM_ORDER) {
-    if (flat.some((p) => rx.test(p.provider_name)))
-      return { access: "Included", platform: label, list };
+    const m = flat.find((p) => rx.test(p.provider_name));
+    if (m) return { access: "Included", platform: label, logo: m.logo_path, list };
   }
-  if (flat.length) return { access: "Included", platform: flat[0].provider_name, list };
+  if (flat.length) return { access: "Included", platform: flat[0].provider_name, logo: flat[0].logo_path, list };
   for (const [label, rx] of PLATFORM_ORDER) {
-    if (paid.some((p) => rx.test(p.provider_name)))
-      return { access: "Rent or buy", platform: label, list };
+    const m = paid.find((p) => rx.test(p.provider_name));
+    if (m) return { access: "Rent or buy", platform: label, logo: m.logo_path, list };
   }
-  if (paid.length) return { access: "Rent or buy", platform: paid[0].provider_name, list };
-  return { access: null, platform: null, list };
+  if (paid.length) return { access: "Rent or buy", platform: paid[0].provider_name, logo: paid[0].logo_path, list };
+  return { access: null, platform: null, logo: null, list };
 }
 
 export async function verify(request, env) {
@@ -60,7 +60,7 @@ export async function verify(request, env) {
   const OMDB = env.OMDB_API_KEY;
   const out = {
     title, imdb: null, rtCritics: null, access: null, platform: null,
-    providers: [], imdbId: null, justwatch: null, poster: null, backdrop: null,
+    providers: [], imdbId: null, justwatch: null, poster: null, backdrop: null, platformLogo: null,
     updated: new Date().toISOString().slice(0, 10), source: {},
   };
 
@@ -86,6 +86,7 @@ export async function verify(request, env) {
           out.access = pick.access;
           out.platform = pick.platform;
           out.providers = pick.list;
+          out.platformLogo = pick.logo ? "https://image.tmdb.org/t/p/w92" + pick.logo : null;
           out.justwatch = area.link || null;
         }
       }
