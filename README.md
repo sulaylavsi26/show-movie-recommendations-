@@ -8,7 +8,7 @@ genuinely likely to enjoy and prevent wasted browsing time.
 
 | File | Purpose |
 |------|---------|
-| [`public/index.html`](public/index.html) | The interactive web app — pick a mood, get three scored picks and a verdict. Self-contained; works offline with curated data. |
+| [`public/index.html`](public/index.html) | The interactive web app — switch profile (Both / Sulay / Tanya), pick a mood, get three scored picks and a verdict. Self-contained; works offline with curated data. |
 | [`worker.js`](worker.js) | Cloudflare Worker entry — serves the app and the `/api/verify` endpoint. |
 | [`src/verify.js`](src/verify.js) | Live-data logic: TMDb (India availability + IMDb id) and OMDb (IMDb + RT critics). |
 | [`wrangler.jsonc`](wrangler.jsonc) | Worker + static-assets config for `wrangler deploy`. |
@@ -35,6 +35,16 @@ source, so it stays indicative (marked ≈).
 
 Pushes to a non-production branch produce a **preview** deployment; promote by
 setting this branch as the production branch, or merge into the default branch.
+
+## Profiles
+
+The app has three profiles — **Both**, **Sulay**, **Tanya** — switched from the
+bar at the top. **Both** blends both tastes for shared enjoyment; the solo
+profiles bias picks toward that person's chosen genres and show their own
+watchlist. Each person sets their taste (genre bias) from their own tab, and the
+"Seen it" rating sliders auto-file a title into each person's Liked/Disliked by
+their own score (and into "Both liked" when you both rate it 7+). All of this is
+stored locally in the browser.
 
 ## How the lists evolve
 

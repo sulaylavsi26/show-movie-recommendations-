@@ -61,6 +61,19 @@
   .logo span{color:var(--muted); font-weight:600}
   .hbtns{display:flex; gap:8px; flex-shrink:0}
   @media(max-width:380px){ .logo span{display:none} }
+
+  /* ---- profile switcher ---- */
+  .profilebar{display:flex; gap:5px; margin-top:14px; background:var(--card2); border:1px solid var(--line); border-radius:14px; padding:5px}
+  .ptab{flex:1; display:flex; align-items:center; justify-content:center; gap:7px; padding:9px 6px; border:none; background:transparent; color:var(--muted); font-weight:650; font-size:14px; border-radius:10px; cursor:pointer; transition:.15s}
+  .ptab:active{transform:scale(.98)}
+  .ptab[aria-pressed="true"]{background:var(--card); color:var(--text); box-shadow:0 1px 4px rgba(20,24,40,.12)}
+  .av{width:22px; height:22px; border-radius:99px; display:grid; place-items:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0}
+  .av.sulay{background:#3b82f6} .av.tanya{background:#ec4899}
+  .av.both{background:linear-gradient(135deg,#3b82f6,#ec4899); font-size:12px}
+  .mhint{font-size:12px; color:var(--muted); margin:10px 0 0; line-height:1.5}
+  .taste{margin-bottom:4px}
+  .taste h4{margin:2px 0 9px}
+  .tastechips{display:flex; gap:7px; flex-wrap:wrap}
   .icon{width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--card);
     color:var(--muted); font-size:16px; display:grid; place-items:center; cursor:pointer}
   .icon:active{transform:scale(.94)}
@@ -248,9 +261,15 @@
     </div>
   </header>
 
+  <div class="profilebar" id="profilebar">
+    <button class="ptab" data-p="both" type="button" aria-pressed="true"><span class="av both">❤</span>Both</button>
+    <button class="ptab" data-p="sulay" type="button" aria-pressed="false"><span class="av sulay">S</span>Sulay</button>
+    <button class="ptab" data-p="tanya" type="button" aria-pressed="false"><span class="av tanya">T</span>Tanya</button>
+  </div>
+
   <div class="hero">
     <h1>What are we <em>watching</em> tonight?</h1>
-    <p>Tap a mood — you'll get three picks and one clear winner in a second.</p>
+    <p id="heroSub">Picking for both of you — tap a mood for three shared-enjoyment picks.</p>
   </div>
 
   <div class="section-label">Pick a mood</div>
@@ -337,9 +356,9 @@
     </div>
     <textarea id="wmReason" placeholder="One line — what worked or didn't (optional)"></textarea>
     <div class="mrow">
-      <button class="btn primary" id="wmLiked" type="button">👍 Liked</button>
-      <button class="btn" id="wmDisliked" type="button">👎 Disliked</button>
+      <button class="btn primary" id="wmSave" type="button">Save &amp; file to lists</button>
     </div>
+    <p class="mhint">Filed to Sulay's and Tanya's lists by each score (liked if 6+), added to “Both liked” when you both rate it 7+, and marked as watched so it won't come up again.</p>
   </div>
 </div>
 
@@ -391,21 +410,32 @@
   var YEARS = {slowhorses:2022,recruit:2022,reacher:2022,familyman:2019,onlymurders:2021,gentlemen:2024,shrinking:2023,badsisters:2022,presumed:2024,hijack:2023,bodyguard:2018,specialops:2020,farzi:2023,fallout:2024,emily:2020,rednotice:2021,lostcity:2022,grayman:2022,murdermystery:2019,kaleidoscope:2023,fubar:2023,schitts:2015,jury:2023,oldman:2022,whitelotus:2021,gunsgulaabs:2023,citadel:2023};
   var API = "/api/verify";
 
+  var MOODOPTS = [{k:"funny",emo:"😂",lbl:"Funny"},{k:"thriller",emo:"🕵️",lbl:"Thriller"},{k:"mystery",emo:"🔍",lbl:"Mystery"},{k:"action",emo:"💥",lbl:"Action"},{k:"warm",emo:"☕",lbl:"Feel-good"},{k:"glossy",emo:"✨",lbl:"Escapism"},{k:"crime",emo:"🎭",lbl:"Crime"}];
+
   var sel = {format:"either", language:"any", mood:"surprise", commitment:"any", energy:"any"};
+  var profile = "both";
   var mode = "normal", hasRun = false, sessionExcluded = {}, current = [], liveCache = {};
 
   var LS = {
     get:function(k,d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } },
     set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   };
-  function userLiked(){ return LS.get("sp_liked",{}); }
-  function userDisliked(){ return LS.get("sp_disliked",{}); }
-  function watchlist(){ return LS.get("sp_watchlist",{}); }
+  function watchlist(){ return LS.get("sp_wl_"+profile,{}); }              // active profile's queue
+  function likedOf(p){ return LS.get("sp_liked_"+p,{}); }
+  function dislikedOf(p){ return LS.get("sp_disliked_"+p,{}); }
+  function prefsOf(p){ return LS.get("sp_pref_"+p,[]); }                   // taste-bias mood keys
+  function watchedMap(){ return LS.get("sp_watched",{}); }                 // global: seen together
   function isWatched(t){
-    if(userLiked()[t.title] || userDisliked()[t.title]) return true;
+    if(watchedMap()[t.title]) return true;
     for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===t.title.toLowerCase()) return true; }
     return false;
   }
+  function moodAff(pref, t){ if(!pref.length) return 1; return t.moods.some(function(m){return pref.indexOf(m)>=0;})?1:0.4; }
+  function affinity(t){
+    if(profile==="both") return (moodAff(prefsOf("sulay"),t)+moodAff(prefsOf("tanya"),t))/2;
+    return moodAff(prefsOf(profile), t);
+  }
+  function nameOf(p){ return p==="sulay"?"Sulay":p==="tanya"?"Tanya":"Both of you"; }
 
   function passFilters(t){
     if(isWatched(t) || sessionExcluded[t.id]) return false;
@@ -428,11 +458,11 @@
   }
   function accessScore(a){ return a==="Included"?1 : a==="Rent or buy"?0.6 : 0.4; }
   function score(t){
-    var taste=t.baseTaste*0.35;
+    var taste=t.baseTaste*0.30;
     var moodM=(sel.mood==="surprise")?0.9:(t.moods.indexOf(sel.mood)>=0?1:0.22);
     var q=((t.rtA!=null?t.rtA:(t.imdb*10))/100)*0.10;
     var conv=(t.prio*accessScore(t.access))*0.05;
-    var raw=taste + moodM*0.25 + paceScore(sel.energy,t.pace)*0.15 + q + t.novelty*0.10 + conv;
+    var raw=taste + moodM*0.22 + affinity(t)*0.13 + paceScore(sel.energy,t.pace)*0.15 + q + t.novelty*0.05 + conv;
     return Math.max(46, Math.min(99, Math.round(raw*100)));
   }
 
@@ -532,9 +562,9 @@
   function wireCards(){
     document.querySelectorAll(".notthis").forEach(function(b){ b.onclick=function(){ sessionExcluded[b.dataset.id]=1; recommend(); }; });
     document.querySelectorAll(".rbtn.wl").forEach(function(b){
-      b.onclick=function(){ var t=byId(b.dataset.id), wl=watchlist();
+      b.onclick=function(){ var t=byId(b.dataset.id), key="sp_wl_"+profile, wl=LS.get(key,{});
         if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform};
-        LS.set("sp_watchlist",wl); b.classList.toggle("on"); b.textContent=wl[t.title]?"✓ Listed":"＋ List"; };
+        LS.set(key,wl); b.classList.toggle("on"); b.textContent=wl[t.title]?"✓ Listed":"＋ List"; };
     });
     document.querySelectorAll(".rbtn.watched").forEach(function(b){ b.onclick=function(){ openWatched(byId(b.dataset.id)); }; });
     document.querySelectorAll(".morebtn").forEach(function(b){
@@ -578,32 +608,60 @@
     document.getElementById("wmReason").value="";
     document.getElementById("watchedOverlay").classList.add("show");
   }
-  function saveWatched(liked){
+  function addList(k,title,rec){ var m=LS.get(k,{}); m[title]=rec; LS.set(k,m); }
+  function fileTaste(p,title,sc,r){ addList((sc>=6?"sp_liked_":"sp_disliked_")+p, title, {score:sc, r:r}); }
+  function saveWatched(){
     if(!pendingWatched) return;
-    var rec={ s:+document.getElementById("sRate").value, t:+document.getElementById("tRate").value, r:document.getElementById("wmReason").value.trim() };
-    var key=liked?"sp_liked":"sp_disliked"; var m=LS.get(key,{}); m[pendingWatched.title]=rec; LS.set(key,m);
-    var wl=watchlist(); if(wl[pendingWatched.title]){ delete wl[pendingWatched.title]; LS.set("sp_watchlist",wl); }
+    var title=pendingWatched.title;
+    var s=+document.getElementById("sRate").value, t=+document.getElementById("tRate").value, r=document.getElementById("wmReason").value.trim();
+    var w=watchedMap(); w[title]={s:s,t:t,r:r}; LS.set("sp_watched",w);
+    fileTaste("sulay",title,s,r); fileTaste("tanya",title,t,r);
+    if(s>=7 && t>=7) addList("sp_liked_both",title,{s:s,t:t,r:r});
+    else if(s<=5 && t<=5) addList("sp_disliked_both",title,{s:s,t:t,r:r});
+    ["sulay","tanya","both"].forEach(function(p){ var k="sp_wl_"+p, wl=LS.get(k,{}); if(wl[title]){ delete wl[title]; LS.set(k,wl); } });
     document.getElementById("watchedOverlay").classList.remove("show"); pendingWatched=null; recommend();
   }
   document.getElementById("sRate").oninput=function(){ document.getElementById("sVal").textContent=this.value; };
   document.getElementById("tRate").oninput=function(){ document.getElementById("tVal").textContent=this.value; };
-  document.getElementById("wmLiked").onclick=function(){ saveWatched(true); };
-  document.getElementById("wmDisliked").onclick=function(){ saveWatched(false); };
+  document.getElementById("wmSave").onclick=function(){ saveWatched(); };
 
   // lists sheet
+  function listBlock(title,obj,key,scoreMode){
+    var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
+    if(!keys.length) h+='<li style="color:var(--faint)">Nothing yet</li>';
+    keys.forEach(function(n){ var e=obj[n], sc='';
+      if(scoreMode==="solo"&&e&&e.score!=null) sc='<span class="sc">'+e.score+'/10</span>';
+      else if(scoreMode==="both"&&e&&e.s!=null) sc='<span class="sc">S'+e.s+' · T'+e.t+'</span>';
+      h+='<li>'+n+sc+' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span></li>'; });
+    return h+'</ul>';
+  }
   function renderLists(){
-    var body=document.getElementById("listBody"), liked=userLiked(), dis=userDisliked(), wl=watchlist();
-    function block(title,obj,key,sc){
-      var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
-      if(!keys.length) h+='<li style="color:var(--faint)">Nothing yet</li>';
-      keys.forEach(function(n){ var s=sc&&obj[n]&&obj[n].s!=null?'<span class="sc">'+obj[n].s+"/"+obj[n].t+'</span>':'';
-        h+='<li>'+n+s+' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span></li>'; });
-      return h+'</ul>';
+    var body=document.getElementById("listBody"), html='', nm=nameOf(profile);
+    document.getElementById("lm-title").textContent = profile==="both" ? "Both of you" : nm+"'s lists";
+    if(profile==="both"){
+      html+='<p class="mhint">“Both” blends Sulay’s and Tanya’s taste for shared enjoyment. Set each person’s taste from their own tab.</p>';
+    } else {
+      var pref=prefsOf(profile);
+      html+='<div class="taste"><h4>'+nm+'’s taste <span class="c">bias picks</span></h4><div class="chips tastechips">'+
+        MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("")+
+        '</div><p class="mhint">Pick the genres '+nm+' leans toward — picks in this tab get nudged their way.</p></div>';
     }
-    body.innerHTML = block("Watched &amp; liked",liked,"sp_liked",true)+block("Watched &amp; disliked",dis,"sp_disliked",true)+
-      block("Watchlist",wl,"sp_watchlist",false)+
-      '<h4>Seeded favourites <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.65">'+n+'</li>';}).join("")+'</ul>';
+    html+=listBlock("Watchlist", watchlist(), "sp_wl_"+profile, false);
+    if(profile==="both"){
+      html+=listBlock("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both");
+      html+=listBlock("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both");
+      html+='<h4>Watched together (seed) <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.6">'+n+'</li>';}).join("")+'</ul>';
+    } else {
+      html+=listBlock(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo");
+      html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo");
+    }
+    body.innerHTML=html;
     body.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
+    body.querySelectorAll(".tastechips .chip").forEach(function(c){ c.onclick=function(){
+      var arr=prefsOf(profile), k=c.dataset.mood, i=arr.indexOf(k);
+      if(i>=0) arr.splice(i,1); else arr.push(k);
+      LS.set("sp_pref_"+profile,arr); c.setAttribute("aria-pressed", arr.indexOf(k)>=0?"true":"false");
+    }; });
   }
 
   // wiring
@@ -611,6 +669,17 @@
     var b=e.target.closest(".mood"); if(!b) return;
     document.querySelectorAll(".mood").forEach(function(m){ m.setAttribute("aria-pressed", m===b?"true":"false"); });
     sel.mood=b.dataset.mood; mode="normal"; recommend();
+  });
+
+  function subFor(p){ return p==="both" ? "Picking for both of you — tap a mood for three shared-enjoyment picks." : "Picking just for "+nameOf(p)+" — tap a mood, tuned to their taste."; }
+  function syncProfile(){
+    document.querySelectorAll(".ptab").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.p===profile?"true":"false"); });
+    document.getElementById("heroSub").textContent=subFor(profile);
+  }
+  document.getElementById("profilebar").addEventListener("click",function(e){
+    var b=e.target.closest(".ptab"); if(!b) return;
+    profile=b.dataset.p; LS.set("sp_profile",profile); syncProfile();
+    if(hasRun) recommend();
   });
   document.querySelectorAll(".chips").forEach(function(g){
     g.addEventListener("click",function(e){
@@ -631,6 +700,9 @@
     var o=document.getElementById(id);
     o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if(id==="listsOverlay") recommend(); } });
   });
+
+  // restore saved profile
+  profile=LS.get("sp_profile","both"); syncProfile();
 
   // theme
   var root=document.documentElement, savedT=LS.get("sp_theme",null);
