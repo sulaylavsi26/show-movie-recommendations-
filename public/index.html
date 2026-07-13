@@ -406,6 +406,8 @@
     <h4 class="ob-h">Add favourites</h4>
     <input class="ob-search" id="onbSearch" type="search" placeholder="Search any movie or show…" autocomplete="off" autocapitalize="none">
     <div class="ob-results" id="onbResults"></div>
+    <h4 class="ob-h">Your favourites <span id="onbMineCount" style="text-transform:none;letter-spacing:0;color:var(--accent);font-weight:800">0</span></h4>
+    <div class="ob-suggest" id="onbMine"></div>
     <h4 class="ob-h">Quick-add from these</h4>
     <div class="ob-suggest" id="onbSuggest"></div>
     <div class="onblock" id="onbLock"></div>
@@ -808,7 +810,14 @@
   function renderSuggest(){
     var liked=likedOf(onbP), sug=C.slice().sort(function(a,b){return b.baseTaste-a.baseTaste;}).slice(0,14);
     document.getElementById("onbSuggest").innerHTML=sug.map(function(t){ return '<button class="ob-chip'+(liked[t.title]?" on":"")+'" type="button" data-title="'+encodeURIComponent(t.title)+'"><span class="h">❤</span>'+t.title+'</button>'; }).join("");
-    document.querySelectorAll("#onbSuggest .ob-chip").forEach(function(c){ c.onclick=function(){ var title=decodeURIComponent(c.dataset.title); toggleFav(onbP,title); c.classList.toggle("on", !!likedOf(onbP)[title]); }; });
+    document.querySelectorAll("#onbSuggest .ob-chip").forEach(function(c){ c.onclick=function(){ var title=decodeURIComponent(c.dataset.title); toggleFav(onbP,title); c.classList.toggle("on", !!likedOf(onbP)[title]); renderMine(); }; });
+  }
+  function renderMine(){
+    var liked=likedOf(onbP), keys=Object.keys(liked), el=document.getElementById("onbMine");
+    document.getElementById("onbMineCount").textContent=keys.length;
+    if(!keys.length){ el.innerHTML='<span class="mhint">Nothing yet — search above or quick-add below.</span>'; return; }
+    el.innerHTML=keys.map(function(t){ return '<button class="ob-chip on" type="button" data-title="'+encodeURIComponent(t)+'">'+t+' <span class="h">✕</span></button>'; }).join("");
+    el.querySelectorAll(".ob-chip").forEach(function(c){ c.onclick=function(){ toggleFav(onbP, decodeURIComponent(c.dataset.title)); renderMine(); renderSuggest(); }; });
   }
   function openOnboard(p){
     onbP=p;
@@ -817,6 +826,7 @@
     document.getElementById("onbGenres").innerHTML=MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("");
     document.querySelectorAll("#onbGenres .chip").forEach(function(c){ c.onclick=function(){ var arr=prefsOf(p), k=c.dataset.mood, i=arr.indexOf(k); if(i>=0)arr.splice(i,1);else arr.push(k); LS.set("sp_pref_"+p,arr); c.setAttribute("aria-pressed", arr.indexOf(k)>=0?"true":"false"); }; });
     renderSuggest();
+    renderMine();
     renderOnbLock(p);
     document.getElementById("onbSearch").value=""; document.getElementById("onbResults").innerHTML="";
     document.getElementById("onbOverlay").classList.add("show");
@@ -866,7 +876,7 @@
       box.innerHTML=res.map(function(x){ var on=!!liked[x.title];
         var thumb = x.poster ? '<img alt="" src="'+x.poster+'">' : '<div style="width:34px;height:51px;border-radius:6px;background:var(--card2);flex-shrink:0"></div>';
         return '<div class="ob-item">'+thumb+'<div class="t">'+x.title+'<small>'+(x.type==="series"?"Series":"Movie")+(x.year?" · "+x.year:"")+'</small></div><button class="ob-add'+(on?" on":"")+'" type="button" data-title="'+encodeURIComponent(x.title)+'" data-year="'+(x.year||"")+'" data-type="'+x.type+'">'+(on?"✓ Added":"＋ Add")+'</button></div>'; }).join("");
-      box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; }; });
+      box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; renderMine(); }; });
     }).catch(function(){});
   }
   document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); if(hasRun) recommend(); };
