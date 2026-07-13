@@ -295,7 +295,7 @@
     <p id="heroSub">Picking for both of you — tap a mood for three shared-enjoyment picks.</p>
   </div>
 
-  <div class="section-label">Pick a mood</div>
+  <div class="section-label">Pick a mood — or a few</div>
   <div class="moods" id="moods">
     <button class="mood" data-mood="surprise" type="button" aria-pressed="false"><span class="emo">🎲</span><span class="lbl">Surprise us</span></button>
     <button class="mood" data-mood="funny" type="button" aria-pressed="false"><span class="emo">😂</span><span class="lbl">Funny &amp; easy</span></button>
@@ -467,7 +467,7 @@
 
   var MOODOPTS = [{k:"funny",emo:"😂",lbl:"Funny"},{k:"thriller",emo:"🕵️",lbl:"Thriller"},{k:"mystery",emo:"🔍",lbl:"Mystery"},{k:"action",emo:"💥",lbl:"Action"},{k:"warm",emo:"☕",lbl:"Feel-good"},{k:"glossy",emo:"✨",lbl:"Escapism"},{k:"crime",emo:"🎭",lbl:"Crime"}];
 
-  var sel = {format:"either", language:"any", mood:"surprise", commitment:"any", energy:"any"};
+  var sel = {format:"either", language:"any", moods:[], commitment:"any", energy:"any"};
   var profile = "both";
   var mode = "normal", hasRun = false, sessionExcluded = {}, current = [], liveCache = {};
 
@@ -588,7 +588,9 @@
   function accessScore(a){ return a==="Included"?1 : a==="Rent or buy"?0.6 : 0.4; }
   function score(t){
     var taste=t.baseTaste*0.30;
-    var moodM=(sel.mood==="surprise")?0.9:(t.moods.indexOf(sel.mood)>=0?1:0.22);
+    var moodM;
+    if(!sel.moods.length || sel.moods.indexOf("surprise")>=0) moodM=0.9;
+    else moodM = t.moods.some(function(m){return sel.moods.indexOf(m)>=0;}) ? 1 : 0.22;
     var q=((t.rtA!=null?t.rtA:(t.imdb*10))/100)*0.10;
     var conv=(t.prio*accessScore(t.access))*0.05;
     var raw=taste + moodM*0.22 + affinity(t)*0.13 + paceScore(sel.energy,t.pace)*0.15 + q + t.novelty*0.05 + conv;
@@ -872,8 +874,13 @@
   // wiring
   document.getElementById("moods").addEventListener("click",function(e){
     var b=e.target.closest(".mood"); if(!b) return;
-    document.querySelectorAll(".mood").forEach(function(m){ m.setAttribute("aria-pressed", m===b?"true":"false"); });
-    sel.mood=b.dataset.mood; mode="normal"; recommend();
+    var k=b.dataset.mood;
+    if(k==="surprise"){ sel.moods=[]; }
+    else { var i=sel.moods.indexOf(k); if(i>=0) sel.moods.splice(i,1); else sel.moods.push(k); }
+    document.querySelectorAll(".mood").forEach(function(m){ var mk=m.dataset.mood;
+      var on = mk==="surprise" ? sel.moods.length===0 : sel.moods.indexOf(mk)>=0;
+      m.setAttribute("aria-pressed", on?"true":"false"); });
+    mode="normal"; recommend();
   });
 
   function subFor(p){ if(p==="both") return "Picking for both of you — tap a mood for three shared-enjoyment picks."; var s="Picking just for "+nameOf(p)+" — tap a mood, tuned to their taste."; if(isClaimed(p)&&!deviceUnlocked(p)) s+=" 🔒 Locked — unlock in Lists to edit."; return s; }
