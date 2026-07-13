@@ -124,6 +124,20 @@
   .matchbadge{position:absolute; top:6px; left:6px; z-index:2; font-family:var(--mono); font-size:11px; font-weight:700;
     color:var(--accent-ink); background:linear-gradient(135deg,var(--accent),var(--accent2)); padding:2px 7px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.3)}
   .matchbadge small{font-weight:600; opacity:.8}
+  .poster .pimg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .45s ease; z-index:1}
+  .poster.has .pimg{opacity:1}
+  .poster.shimmer::before{content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(100deg, transparent 25%, color-mix(in srgb,var(--text) 10%, transparent) 45%, transparent 65%); background-size:220px 100%; animation:shim 1.15s linear infinite}
+  @keyframes shim{0%{background-position:-140px 0}100%{background-position:260px 0}}
+
+  .where{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:1px 0 1px}
+  .platform-badge{font-weight:750; font-size:12.5px; color:#fff; padding:5px 11px; border-radius:9px; display:inline-flex; align-items:center; gap:5px; letter-spacing:.01em; background:#556; box-shadow:0 3px 10px -4px rgba(0,0,0,.5)}
+  .platform-badge .tri{font-size:9px; opacity:.9}
+  .platform-badge.netflix{background:#e50914}
+  .platform-badge.prime{background:#0a9edb}
+  .platform-badge.hotstar{background:linear-gradient(135deg,#2a6df4,#8b5cf6)}
+  .platform-badge.apple{background:#141414; box-shadow:inset 0 0 0 1px #3a3a3a}
+  .platform-badge.sony{background:#6c2bd9}
+  .where .access-tag{font-weight:700; padding:5px 10px}
 
   .rbody{flex:1; min-width:0; display:flex; flex-direction:column; gap:9px}
   .rbody h3{margin:0; font-size:17px; font-weight:750; letter-spacing:-.01em; line-height:1.2}
@@ -423,6 +437,15 @@
   function el(h){ var d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; }
   function jw(t){ return "https://www.justwatch.com/in/search?q="+encodeURIComponent(t.title); }
   function accClass(a){ return a==="Included"?"included":(a==="Rent or buy"?"rent":"extra"); }
+  function platformClass(p){ p=(p||"").toLowerCase();
+    if(p.indexOf("netflix")>=0) return "netflix";
+    if(p.indexOf("prime")>=0||p.indexOf("amazon")>=0) return "prime";
+    if(p.indexOf("hotstar")>=0||p.indexOf("jio")>=0) return "hotstar";
+    if(p.indexOf("apple")>=0) return "apple";
+    if(p.indexOf("sony")>=0) return "sony";
+    return "other"; }
+  function liveGet(id){ if(liveCache[id]) return liveCache[id]; var c=LS.get("sp_live",{}),e=c[id]; if(e&&(Date.now()-e._t)<6048e5){ liveCache[id]=e; return e; } return null; }
+  function liveSet(id,d){ liveCache[id]=d; var c=LS.get("sp_live",{}); c[id]=Object.assign({_t:Date.now()},d); LS.set("sp_live",c); }
   function rtShort(v){ return v==null?"NR":v+"%"; }
   function initials(s){ return s.replace(/[^A-Za-z0-9 ]/g,"").split(/\s+/).slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase(); }
 
@@ -432,17 +455,20 @@
     var drawHTML = (best && t.drawback) ? '<p class="flag"><span class="k">•</span><span>'+t.drawback+'</span></p>' : '';
     return ''+
     '<article class="rec'+(best?' best':'')+'" data-id="'+t.id+'">'+
-      '<div class="poster" data-poster data-init="'+initials(t.title)+'">'+
+      '<div class="poster shimmer" data-poster data-init="'+initials(t.title)+'">'+
+        '<img class="pimg" alt="" loading="lazy">'+
         '<span class="matchbadge">'+x.s+'<small>%</small></span>'+
       '</div>'+
       '<div class="rbody">'+
         '<h3>'+t.title+'</h3>'+
+        '<div class="where">'+
+          '<span class="platform-badge '+platformClass(t.platform)+'" data-plat><span class="tri">▶</span> <span class="platform-val">'+t.platform+'</span></span>'+
+          '<span class="pill access-tag '+accClass(t.access)+'" data-acc>'+t.access+'</span>'+
+        '</div>'+
         '<div class="rmeta noscroll">'+
           '<span class="pill sc"><b>IMDb</b> <span class="imdb-val">'+(t.imdb!=null?t.imdb:"–")+'</span></span>'+
           '<span class="pill sc"><b>RT</b> <span class="rtc-val">'+rtShort(t.rtC)+'</span></span>'+
           '<span class="pill sc dim"><b>Aud</b> '+rtShort(t.rtA)+'≈</span>'+
-          '<span class="pill plat"><span class="platform-val">'+t.platform+'</span></span>'+
-          '<span class="pill access-tag '+accClass(t.access)+'">'+t.access+'</span>'+
           '<span class="pill">'+(t.format==="movie"?"🎬 ":"📺 ")+t.eps+'</span>'+
           '<span class="pill">'+t.pace+'</span>'+
         '</div>'+
@@ -497,23 +523,29 @@
     });
   }
 
+  function applyLive(root, d, st){
+    if(d.imdb!=null) root.querySelector('.imdb-val').textContent=d.imdb;
+    if(d.rtCritics!=null) root.querySelector('.rtc-val').textContent=d.rtCritics+"%";
+    if(d.platform){ var pb=root.querySelector('[data-plat]'); if(pb){ pb.className='platform-badge '+platformClass(d.platform); root.querySelector('.platform-val').textContent=d.platform; } }
+    if(d.access){ var a=root.querySelector('[data-acc]'); if(a){ a.className='pill access-tag '+accClass(d.access); a.textContent=d.access; } }
+    var p=root.querySelector('[data-poster]');
+    if(d.poster && p){ var img=p.querySelector('.pimg');
+      img.onload=function(){ p.classList.add('has'); p.classList.remove('shimmer'); };
+      img.onerror=function(){ p.classList.remove('shimmer'); };
+      img.src=d.poster;
+    } else if(p){ p.classList.remove('shimmer'); }
+    st.textContent='● Live'; st.className='vstat live';
+  }
   function verifyCard(t){
     var root=document.querySelector('.rec[data-id="'+t.id+'"]'); if(!root) return;
     var st=root.querySelector('[data-status]');
-    function apply(d){
-      if(d.imdb!=null) root.querySelector('.imdb-val').textContent=d.imdb;
-      if(d.rtCritics!=null) root.querySelector('.rtc-val').textContent=d.rtCritics+"%";
-      if(d.platform) root.querySelector('.platform-val').textContent=d.platform;
-      if(d.access){ var a=root.querySelector('.access-tag'); a.className='pill access-tag '+accClass(d.access); a.textContent=d.access; }
-      if(d.poster){ var p=root.querySelector('[data-poster]'); p.style.backgroundImage="url('"+d.poster+"')"; p.classList.add("has"); }
-      st.textContent='● Live'; st.className='vstat live';
-    }
-    if(liveCache[t.id]){ apply(liveCache[t.id]); return; }
+    var cached=liveGet(t.id);
+    if(cached){ applyLive(root, cached, st); return; }
     st.textContent='Checking…'; st.className='vstat checking';
     fetch(API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(YEARS[t.id]?"&year="+YEARS[t.id]:""))
       .then(function(r){ if(!r.ok) throw 0; return r.json(); })
-      .then(function(d){ if(!d||d.error) throw 0; liveCache[t.id]=d; apply(d); })
-      .catch(function(){ st.textContent='Curated'; st.className='vstat'; });
+      .then(function(d){ if(!d||d.error) throw 0; liveSet(t.id,d); applyLive(root,d,st); })
+      .catch(function(){ st.textContent='Curated'; st.className='vstat'; var p=root.querySelector('[data-poster]'); if(p) p.classList.remove('shimmer'); });
   }
 
   // watched sheet
