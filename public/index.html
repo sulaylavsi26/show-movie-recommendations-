@@ -456,22 +456,45 @@
     set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   };
 
-  // ---- cloud sync (mirrors shared keys to /api/state; local is the working store) ----
-  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+  // ---- cloud sync (last-writer-wins per item; adds, deletes and re-adds all propagate) ----
+  var META_KEY="sp_syncmeta";
+  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|syncmeta$)/;
+  var DATARE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+  var MAPRE=/^sp_(liked_|disliked_|wl_|watched$)/, ARRRE=/^sp_pref_/, BOOLRE=/^sp_onboarded_/;
   var _applying=false, _pushT=null, _lsset=LS.set;
-  LS.set=function(k,v){ _lsset(k,v); if(!_applying && SYNCRE.test(k)) schedulePush(); };
+  LS.set=function(k,v){
+    if(!_applying && DATARE.test(k)){ var oldV=LS.get(k,null); _lsset(k,v); stampMeta(k,oldV,v); schedulePush(); }
+    else { _lsset(k,v); if(!_applying && k===META_KEY) schedulePush(); }
+  };
+  function stampMeta(k,oldV,newV){
+    var meta=LS.get(META_KEY,{}), now=Date.now(), ch=false;
+    if(MAPRE.test(k)){ var o=oldV||{}, n=newV||{};
+      Object.keys(n).forEach(function(id){ if(!(id in o)){ meta[k+"|"+id]={t:now,d:0}; ch=true; } });
+      Object.keys(o).forEach(function(id){ if(!(id in n)){ meta[k+"|"+id]={t:now,d:1}; ch=true; } });
+    } else if(ARRRE.test(k)){ var oa=oldV||[], na=newV||[];
+      na.forEach(function(id){ if(oa.indexOf(id)<0){ meta[k+"|"+id]={t:now,d:0}; ch=true; } });
+      oa.forEach(function(id){ if(na.indexOf(id)<0){ meta[k+"|"+id]={t:now,d:1}; ch=true; } });
+    } else if(BOOLRE.test(k)){ meta[k+"|_"]={t:now,d:newV?0:1}; ch=true; }
+    if(ch) _lsset(META_KEY, meta);
+  }
   function listsOpen(){ return document.getElementById("listsOverlay").classList.contains("show"); }
-  function collectLocal(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(SYNCRE.test(k)) o[k]=LS.get(k,null); } return o; }
+  function localSyncKeys(){ var a=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(SYNCRE.test(k)) a.push(k); } return a; }
+  function collectLocal(){ var o={}; localSyncKeys().forEach(function(k){ o[k]=LS.get(k,null); }); return o; }
+  function mergeMeta(a,b){ var m={}; [a||{},b||{}].forEach(function(M){ Object.keys(M).forEach(function(mk){ if(!m[mk]||M[mk].t>=m[mk].t) m[mk]=M[mk]; }); }); return m; }
+  function mergeKey(k,loc,cloud,meta){
+    if(MAPRE.test(k)){ var out={}, ids={}; Object.keys(loc||{}).forEach(function(id){ids[id]=1;}); Object.keys(cloud||{}).forEach(function(id){ids[id]=1;});
+      Object.keys(ids).forEach(function(id){ var mm=meta[k+"|"+id]; if(mm&&mm.d===1) return; out[id]=(cloud&&cloud[id]!==undefined)?cloud[id]:(loc||{})[id]; }); return out; }
+    if(ARRRE.test(k)){ var set={}; [].concat(loc||[],cloud||[]).forEach(function(x){set[x]=1;}); return Object.keys(set).filter(function(id){ var mm=meta[k+"|"+id]; return !(mm&&mm.d===1); }); }
+    if(BOOLRE.test(k)){ var mm=meta[k+"|_"]; if(mm) return mm.d!==1; return !!(loc||cloud); }
+    return cloud!==undefined?cloud:loc;
+  }
   function applyCloud(obj){
-    _applying=true; var changed=false;
-    Object.keys(obj||{}).forEach(function(k){
-      if(!SYNCRE.test(k)) return;
-      var inc=obj[k], loc=LS.get(k,null), merged;
-      if(Array.isArray(inc)){ var s={}; [].concat(loc||[],inc).forEach(function(x){s[x]=1;}); merged=Object.keys(s); }
-      else if(inc && typeof inc==="object"){ merged=Object.assign({},loc||{},inc); }
-      else merged=inc;
-      if(JSON.stringify(loc)!==JSON.stringify(merged)){ LS.set(k,merged); changed=true; }
-    });
+    _applying=true;
+    var meta=mergeMeta(LS.get(META_KEY,{}), obj[META_KEY]||{});
+    var keys={}; Object.keys(obj||{}).forEach(function(k){ if(DATARE.test(k)) keys[k]=1; }); localSyncKeys().forEach(function(k){ if(DATARE.test(k)) keys[k]=1; });
+    var changed=false;
+    Object.keys(keys).forEach(function(k){ var loc=LS.get(k,null), merged=mergeKey(k,loc,obj[k],meta); if(JSON.stringify(loc)!==JSON.stringify(merged)){ _lsset(k,merged); changed=true; } });
+    _lsset(META_KEY, meta);
     _applying=false;
     if(changed){ if(listsOpen()) renderLists(); if(hasRun) render(); }
   }
@@ -479,13 +502,13 @@
   function doPush(){ var p=collectLocal(); if(!Object.keys(p).length) return;
     fetch("/api/state",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(p)})
       .then(function(r){return r.ok?r.json():null;})
-      .then(function(d){ if(d && typeof d==="object" && d.ok!==false && Object.keys(d).length) applyCloud(d); })
+      .then(function(d){ if(d && typeof d==="object" && d.ok!==false) applyCloud(d); })
       .catch(function(){}); }
   function pullCloud(){ fetch("/api/state").then(function(r){return r.ok?r.json():null;})
-      .then(function(d){ if(d && typeof d==="object" && Object.keys(d).length) applyCloud(d); }).catch(function(){}); }
+      .then(function(d){ if(d && typeof d==="object" && d.ok!==false) applyCloud(d); }).catch(function(){}); }
   function initSync(){
     fetch("/api/state").then(function(r){return r.ok?r.json():null;}).then(function(d){
-      if(d && typeof d==="object" && Object.keys(d).length) applyCloud(d);
+      if(d && typeof d==="object" && d.ok!==false) applyCloud(d);
       schedulePush();
     }).catch(function(){});
     window.addEventListener("focus", pullCloud);

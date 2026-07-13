@@ -15,20 +15,43 @@ function j(obj, status) {
   });
 }
 
-// Union-merge two state blobs: arrays become sets, objects shallow-merge,
-// scalars take the incoming value. Additive so concurrent edits don't clobber.
-function mergeState(a, b) {
-  const out = Object.assign({}, a);
-  for (const k in b) {
-    const bv = b[k], av = out[k];
-    if (Array.isArray(bv)) {
-      out[k] = Array.from(new Set([].concat(av || [], bv)));
-    } else if (bv && typeof bv === "object") {
-      out[k] = Object.assign({}, av || {}, bv);
-    } else {
-      out[k] = bv;
+// Last-writer-wins merge keyed by per-item metadata (sp_syncmeta): each item
+// carries {t: timestamp, d: 0|1 deleted}, so adds, deletes and re-adds all
+// converge correctly across devices instead of just unioning.
+const MAP = /^sp_(liked_|disliked_|wl_|watched$)/, ARR = /^sp_pref_/, BOOL = /^sp_onboarded_/;
+const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+
+function mergeMeta(a, b) {
+  const m = {};
+  [a || {}, b || {}].forEach((M) => { for (const k in M) { if (!m[k] || M[k].t >= m[k].t) m[k] = M[k]; } });
+  return m;
+}
+function mergeKey(k, loc, cloud, meta) {
+  if (MAP.test(k)) {
+    const out = {}, ids = {};
+    Object.keys(loc || {}).forEach((id) => (ids[id] = 1));
+    Object.keys(cloud || {}).forEach((id) => (ids[id] = 1));
+    for (const id in ids) {
+      const mm = meta[k + "|" + id];
+      if (mm && mm.d === 1) continue;
+      out[id] = cloud && cloud[id] !== undefined ? cloud[id] : (loc || {})[id];
     }
+    return out;
   }
+  if (ARR.test(k)) {
+    const set = {};
+    [].concat(loc || [], cloud || []).forEach((x) => (set[x] = 1));
+    return Object.keys(set).filter((id) => { const mm = meta[k + "|" + id]; return !(mm && mm.d === 1); });
+  }
+  if (BOOL.test(k)) { const mm = meta[k + "|_"]; if (mm) return mm.d !== 1; return !!(loc || cloud); }
+  return cloud !== undefined ? cloud : loc;
+}
+function mergeState(a, b) {
+  const meta = mergeMeta(a["sp_syncmeta"], b["sp_syncmeta"]);
+  const out = {}, keys = {};
+  [a, b].forEach((s) => { for (const k in s) { if (DATA.test(k)) keys[k] = 1; } });
+  for (const k in keys) out[k] = mergeKey(k, a[k], b[k], meta);
+  out["sp_syncmeta"] = meta;
   return out;
 }
 
