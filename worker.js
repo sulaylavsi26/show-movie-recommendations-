@@ -8,6 +8,13 @@ export default {
     if (pathname === "/api/verify") {
       return request.method === "OPTIONS" ? preflight() : verify(request, env);
     }
-    return env.ASSETS.fetch(request);
+    const res = await env.ASSETS.fetch(request);
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("text/html")) {
+      const headers = new Headers(res.headers);
+      headers.set("content-type", "text/html; charset=utf-8");
+      return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+    }
+    return res;
   },
 };
