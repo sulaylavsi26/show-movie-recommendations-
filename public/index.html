@@ -894,7 +894,7 @@
     if(hasRun) recommend();
     if(profile!=="both" && !isClaimed(profile) && !LS.get("sp_onboarded_"+profile,false)) openOnboard(profile);
   });
-  document.querySelectorAll(".chips").forEach(function(g){
+  document.querySelectorAll(".chips[data-group]").forEach(function(g){
     g.addEventListener("click",function(e){
       var b=e.target.closest(".chip"); if(!b) return;
       g.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===b?"true":"false"); });
