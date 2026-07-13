@@ -92,6 +92,11 @@
   .ob-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent}
   .ob-chip .h{opacity:.55; font-size:11px}
   .ob-chip.on .h{opacity:1}
+  .onblock{margin-top:16px}
+  .onblock .rbtn{width:100%; padding:11px; border-radius:11px; font-size:13.5px}
+  .pin-in{letter-spacing:.35em; text-align:center; font-size:18px; font-weight:700}
+  .pin-err{color:var(--bad); font-size:12.5px; min-height:17px; margin-top:7px; font-weight:600}
+  .lockchip{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:800; color:var(--muted)}
   .icon{width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--card);
     color:var(--muted); font-size:16px; display:grid; place-items:center; cursor:pointer}
   .icon:active{transform:scale(.94)}
@@ -396,14 +401,29 @@
     <div class="grab"></div>
     <h3 id="onb-title">Set up</h3>
     <div class="msub" id="onbSub">Add the genres and titles you love — this shapes your picks and keeps them from being recommended again.</div>
-    <h4 class="ob-h">Genres you love</h4>
+    <h4 class="ob-h">Genres you love <span style="text-transform:none;letter-spacing:0;color:var(--faint);font-weight:600">— pick as many as you like</span></h4>
     <div class="chips tastechips" id="onbGenres"></div>
     <h4 class="ob-h">Add favourites</h4>
     <input class="ob-search" id="onbSearch" type="search" placeholder="Search any movie or show…" autocomplete="off" autocapitalize="none">
     <div class="ob-results" id="onbResults"></div>
     <h4 class="ob-h">Quick-add from these</h4>
     <div class="ob-suggest" id="onbSuggest"></div>
+    <div class="onblock" id="onbLock"></div>
     <div class="mrow"><button class="btn primary" id="onbDone" type="button">Done</button></div>
+  </div>
+</div>
+
+<!-- PIN sheet -->
+<div class="overlay" id="pinOverlay">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pin-title">
+    <div class="grab"></div>
+    <h3 id="pin-title">Lock profile</h3>
+    <div class="msub" id="pinSub"></div>
+    <input class="ob-search pin-in" id="pin1" type="password" inputmode="numeric" maxlength="4" placeholder="4-digit PIN" autocomplete="off">
+    <input class="ob-search pin-in" id="pin2" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm PIN" autocomplete="off" style="margin-top:8px">
+    <div class="pin-err" id="pinErr"></div>
+    <div class="mrow"><button class="btn primary" id="pinGo" type="button">Set PIN</button></div>
+    <p class="mhint" id="pinNote"></p>
   </div>
 </div>
 
@@ -458,8 +478,8 @@
 
   // ---- cloud sync (last-writer-wins per item; adds, deletes and re-adds all propagate) ----
   var META_KEY="sp_syncmeta";
-  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|syncmeta$)/;
-  var DATARE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_|syncmeta$)/;
+  var DATARE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_)/;
   var MAPRE=/^sp_(liked_|disliked_|wl_|watched$)/, ARRRE=/^sp_pref_/, BOOLRE=/^sp_onboarded_/;
   var _applying=false, _pushT=null, _lsset=LS.set;
   LS.set=function(k,v){
@@ -519,13 +539,13 @@
   function likedOf(p){ return LS.get("sp_liked_"+p,{}); }
   function dislikedOf(p){ return LS.get("sp_disliked_"+p,{}); }
   function prefsOf(p){ return LS.get("sp_pref_"+p,[]); }                   // taste-bias mood keys
-  function watchedMap(){ return LS.get("sp_watched",{}); }                 // global: seen together
+  // a title is "seen" by a person if it's in their liked or disliked list
+  function seenSet(p){ var s={}, a=likedOf(p), b=dislikedOf(p); Object.keys(a).forEach(function(k){s[k]=1;}); Object.keys(b).forEach(function(k){s[k]=1;}); return s; }
   function isWatched(t){
     var title=t.title;
-    if(watchedMap()[title]) return true;
-    if(likedOf(profile)[title] || dislikedOf(profile)[title]) return true;  // this profile's own favourites/passes
-    for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===title.toLowerCase()) return true; }
-    return false;
+    for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===title.toLowerCase()) return true; } // watched together (seed)
+    if(profile==="both") return !!(seenSet("sulay")[title] || seenSet("tanya")[title]);  // either has seen → skip for Both
+    return !!seenSet(profile)[title];                                                     // only this person's own history
   }
   function byTitle(x){ for(var i=0;i<C.length;i++) if(C[i].title.toLowerCase()===String(x).toLowerCase()) return C[i]; return null; }
   function prefsEff(p){ var s={}; prefsOf(p).forEach(function(x){s[x]=1;});
@@ -538,6 +558,13 @@
     return moodAff(prefsEff(profile), t);
   }
   function nameOf(p){ return p==="sulay"?"Sulay":p==="tanya"?"Tanya":"Both of you"; }
+
+  // ---- per-profile PIN lock (light lock for shared use) ----
+  function lockOf(p){ return LS.get("sp_lock_"+p,null); }
+  function isClaimed(p){ var l=lockOf(p); return !!(l&&l.hash); }
+  function deviceUnlocked(p){ return !!LS.get("sp_dev_unlocked_"+p,false); }   // device-local, not synced
+  function canEdit(p){ if(p==="both") return true; if(!isClaimed(p)) return true; return deviceUnlocked(p); }
+  function sha(s){ return crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2);}).join(""); }); }
 
   function passFilters(t){
     if(isWatched(t) || sessionExcluded[t.id]) return false;
@@ -664,9 +691,9 @@
   function wireCards(){
     document.querySelectorAll(".notthis").forEach(function(b){ b.onclick=function(){ sessionExcluded[b.dataset.id]=1; recommend(); }; });
     document.querySelectorAll(".rbtn.wl").forEach(function(b){
-      b.onclick=function(){ var t=byId(b.dataset.id), key="sp_wl_"+profile, wl=LS.get(key,{});
+      b.onclick=function(){ requireEdit(profile,function(){ var key="sp_wl_"+profile, wl=LS.get(key,{}), t=byId(b.dataset.id);
         if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform};
-        LS.set(key,wl); b.classList.toggle("on"); b.textContent=wl[t.title]?"✓ Listed":"＋ List"; };
+        LS.set(key,wl); var on=!!LS.get(key,{})[t.title]; b.classList.toggle("on",on); b.textContent=on?"✓ Listed":"＋ List"; }); };
     });
     document.querySelectorAll(".rbtn.watched").forEach(function(b){ b.onclick=function(){ openWatched(byId(b.dataset.id)); }; });
     document.querySelectorAll(".morebtn").forEach(function(b){
@@ -716,8 +743,8 @@
     if(!pendingWatched) return;
     var title=pendingWatched.title;
     var s=+document.getElementById("sRate").value, t=+document.getElementById("tRate").value, r=document.getElementById("wmReason").value.trim();
-    var w=watchedMap(); w[title]={s:s,t:t,r:r}; LS.set("sp_watched",w);
-    fileTaste("sulay",title,s,r); fileTaste("tanya",title,t,r);
+    if(canEdit("sulay")) fileTaste("sulay",title,s,r);
+    if(canEdit("tanya")) fileTaste("tanya",title,t,r);
     if(s>=7 && t>=7) addList("sp_liked_both",title,{s:s,t:t,r:r});
     else if(s<=5 && t<=5) addList("sp_disliked_both",title,{s:s,t:t,r:r});
     ["sulay","tanya","both"].forEach(function(p){ var k="sp_wl_"+p, wl=LS.get(k,{}); if(wl[title]){ delete wl[title]; LS.set(k,wl); } });
@@ -728,38 +755,43 @@
   document.getElementById("wmSave").onclick=function(){ saveWatched(); };
 
   // lists sheet
-  function listBlock(title,obj,key,scoreMode){
+  function listBlock(title,obj,key,scoreMode,ed){
     var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
     if(!keys.length) h+='<li style="color:var(--faint)">Nothing yet</li>';
     keys.forEach(function(n){ var e=obj[n], sc='';
       if(scoreMode==="solo"&&e&&e.score!=null) sc='<span class="sc">'+e.score+'/10</span>';
       else if(scoreMode==="both"&&e&&e.s!=null) sc='<span class="sc">S'+e.s+' · T'+e.t+'</span>';
-      h+='<li>'+n+sc+' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span></li>'; });
+      var x=(ed===false)?'':' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span>';
+      h+='<li>'+n+sc+x+'</li>'; });
     return h+'</ul>';
   }
   function renderLists(){
-    var body=document.getElementById("listBody"), html='', nm=nameOf(profile);
-    document.getElementById("lm-title").textContent = profile==="both" ? "Both of you" : nm+"'s lists";
+    var body=document.getElementById("listBody"), html='', nm=nameOf(profile), ed=canEdit(profile);
+    document.getElementById("lm-title").textContent = profile==="both" ? "Both of you" : (nm+"’s lists"+(isClaimed(profile)?(ed?" 🔓":" 🔒"):""));
     if(profile==="both"){
       html+='<p class="mhint">“Both” blends Sulay’s and Tanya’s taste for shared enjoyment. Set each person’s taste from their own tab.</p>';
+    } else if(!ed){
+      html+='<button class="btn primary ob-open" type="button" id="obUnlockBtn">🔒 Unlock to edit '+nm+'’s profile</button>';
+      html+='<p class="mhint">This profile is locked — only '+nm+' (with the PIN) can change its favourites and taste. You can still view it and get picks.</p>';
     } else {
       var pref=prefsOf(profile);
       html+='<button class="btn primary ob-open" type="button" id="obOpenBtn">✨ Build '+nm+'’s favourites</button>';
       html+='<div class="taste"><h4>'+nm+'’s taste <span class="c">bias picks</span></h4><div class="chips tastechips">'+
         MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("")+
-        '</div><p class="mhint">Pick the genres '+nm+' leans toward — picks in this tab get nudged their way.</p></div>';
+        '</div><p class="mhint">Pick as many genres as you like — picks in this tab get nudged their way.</p></div>';
     }
-    html+=listBlock("Watchlist", watchlist(), "sp_wl_"+profile, false);
+    html+=listBlock("Watchlist", watchlist(), "sp_wl_"+profile, false, ed);
     if(profile==="both"){
-      html+=listBlock("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both");
-      html+=listBlock("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both");
+      html+=listBlock("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both", true);
+      html+=listBlock("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both", true);
       html+='<h4>Watched together (seed) <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.6">'+n+'</li>';}).join("")+'</ul>';
     } else {
-      html+=listBlock(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo");
-      html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo");
+      html+=listBlock(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo", ed);
+      html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo", ed);
     }
     body.innerHTML=html;
-    var obb=document.getElementById("obOpenBtn"); if(obb) obb.onclick=function(){ openOnboard(profile); };
+    var obb=document.getElementById("obOpenBtn"); if(obb) obb.onclick=function(){ requireEdit(profile,function(){ openOnboard(profile); }); };
+    var obu=document.getElementById("obUnlockBtn"); if(obu) obu.onclick=function(){ openPin("enter",profile,function(){ syncProfile(); renderLists(); }); };
     body.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
     body.querySelectorAll(".tastechips .chip").forEach(function(c){ c.onclick=function(){
       var arr=prefsOf(profile), k=c.dataset.mood, i=arr.indexOf(k);
@@ -783,9 +815,46 @@
     document.getElementById("onbGenres").innerHTML=MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("");
     document.querySelectorAll("#onbGenres .chip").forEach(function(c){ c.onclick=function(){ var arr=prefsOf(p), k=c.dataset.mood, i=arr.indexOf(k); if(i>=0)arr.splice(i,1);else arr.push(k); LS.set("sp_pref_"+p,arr); c.setAttribute("aria-pressed", arr.indexOf(k)>=0?"true":"false"); }; });
     renderSuggest();
+    renderOnbLock(p);
     document.getElementById("onbSearch").value=""; document.getElementById("onbResults").innerHTML="";
     document.getElementById("onbOverlay").classList.add("show");
   }
+  function renderOnbLock(p){
+    var el=document.getElementById("onbLock");
+    if(!isClaimed(p)){
+      el.innerHTML='<button class="rbtn" id="onbLockBtn" type="button">🔒 Lock so only '+nameOf(p)+' can edit this profile</button>';
+      document.getElementById("onbLockBtn").onclick=function(){ openPin("set",p,function(){ renderOnbLock(p); }); };
+    } else {
+      el.innerHTML='<div class="mhint">🔒 Locked'+(deviceUnlocked(p)?" — you’re unlocked on this device.":".")+'</div>';
+    }
+  }
+
+  // ---- PIN sheet ----
+  var pinMode="enter", pinP="tanya", pinCb=null;
+  function openPin(mode,p,cb){
+    pinMode=mode; pinP=p; pinCb=cb||null; var setM=(mode==="set");
+    document.getElementById("pin-title").textContent=setM?("Lock "+nameOf(p)+"’s profile"):("Unlock "+nameOf(p)+"’s profile");
+    document.getElementById("pinSub").textContent=setM?("Set a 4-digit PIN so only "+nameOf(p)+" can edit this profile."):("Enter "+nameOf(p)+"’s PIN to edit on this device.");
+    document.getElementById("pin2").style.display=setM?"":"none";
+    document.getElementById("pinGo").textContent=setM?"Set PIN":"Unlock";
+    document.getElementById("pin1").value=""; document.getElementById("pin2").value=""; document.getElementById("pinErr").textContent="";
+    document.getElementById("pinNote").textContent=setM?"This is a light lock for shared use, not strong security.":"";
+    document.getElementById("pinOverlay").classList.add("show");
+    setTimeout(function(){ document.getElementById("pin1").focus(); },60);
+  }
+  function closePin(){ document.getElementById("pinOverlay").classList.remove("show"); }
+  document.getElementById("pinGo").onclick=function(){
+    var p1=document.getElementById("pin1").value.trim(), err=document.getElementById("pinErr");
+    if(!/^\d{4}$/.test(p1)){ err.textContent="Enter a 4-digit PIN."; return; }
+    if(pinMode==="set"){
+      var p2=document.getElementById("pin2").value.trim();
+      if(p1!==p2){ err.textContent="PINs don’t match."; return; }
+      sha(p1).then(function(h){ LS.set("sp_lock_"+pinP,{hash:h}); LS.set("sp_dev_unlocked_"+pinP,true); closePin(); if(pinCb) pinCb(); });
+    } else {
+      sha(p1).then(function(h){ var l=lockOf(pinP); if(l&&l.hash===h){ LS.set("sp_dev_unlocked_"+pinP,true); closePin(); if(pinCb) pinCb(); } else err.textContent="Wrong PIN."; });
+    }
+  };
+  function requireEdit(p,cb){ if(canEdit(p)) cb(); else openPin("enter",p,function(){ syncProfile(); if(hasRun) recommend(); cb(); }); }
   var _searchT=null;
   document.getElementById("onbSearch").addEventListener("input",function(){ var q=this.value.trim(); if(_searchT)clearTimeout(_searchT); if(!q){ document.getElementById("onbResults").innerHTML=""; return; } _searchT=setTimeout(function(){ doSearch(q); },300); });
   function doSearch(q){
@@ -807,7 +876,7 @@
     sel.mood=b.dataset.mood; mode="normal"; recommend();
   });
 
-  function subFor(p){ return p==="both" ? "Picking for both of you — tap a mood for three shared-enjoyment picks." : "Picking just for "+nameOf(p)+" — tap a mood, tuned to their taste."; }
+  function subFor(p){ if(p==="both") return "Picking for both of you — tap a mood for three shared-enjoyment picks."; var s="Picking just for "+nameOf(p)+" — tap a mood, tuned to their taste."; if(isClaimed(p)&&!deviceUnlocked(p)) s+=" 🔒 Locked — unlock in Lists to edit."; return s; }
   function syncProfile(){
     document.querySelectorAll(".ptab").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.p===profile?"true":"false"); });
     document.getElementById("heroSub").textContent=subFor(profile);
@@ -816,7 +885,7 @@
     var b=e.target.closest(".ptab"); if(!b) return;
     profile=b.dataset.p; LS.set("sp_profile",profile); syncProfile();
     if(hasRun) recommend();
-    if(profile!=="both" && !LS.get("sp_onboarded_"+profile,false)) openOnboard(profile);
+    if(profile!=="both" && !isClaimed(profile) && !LS.get("sp_onboarded_"+profile,false)) openOnboard(profile);
   });
   document.querySelectorAll(".chips").forEach(function(g){
     g.addEventListener("click",function(e){
@@ -833,7 +902,7 @@
   rtog.onclick=function(){ var open=document.getElementById("refine").classList.toggle("open"); rtog.setAttribute("aria-expanded", open?"true":"false"); };
 
   document.getElementById("openLists").onclick=function(){ renderLists(); document.getElementById("listsOverlay").classList.add("show"); };
-  [ "watchedOverlay","listsOverlay","onbOverlay" ].forEach(function(id){
+  [ "watchedOverlay","listsOverlay","onbOverlay","pinOverlay" ].forEach(function(id){
     var o=document.getElementById(id);
     o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if((id==="listsOverlay"||id==="onbOverlay") && hasRun) recommend(); } });
   });

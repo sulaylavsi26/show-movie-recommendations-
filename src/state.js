@@ -19,7 +19,7 @@ function j(obj, status) {
 // carries {t: timestamp, d: 0|1 deleted}, so adds, deletes and re-adds all
 // converge correctly across devices instead of just unioning.
 const MAP = /^sp_(liked_|disliked_|wl_|watched$)/, ARR = /^sp_pref_/, BOOL = /^sp_onboarded_/;
-const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_)/;
 
 function mergeMeta(a, b) {
   const m = {};
