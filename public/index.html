@@ -147,9 +147,14 @@
   .flag .k{font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:.1em; padding-top:2px; flex-shrink:0}
 
   .verify{display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:15px; padding-top:14px; border-top:1px solid var(--border-soft); font-size:12.5px; align-items:center}
-  .verify > span{color:var(--faint); text-transform:uppercase; letter-spacing:.1em; font-size:10.5px; font-weight:700}
+  .verify > span.vlabel{color:var(--faint); text-transform:uppercase; letter-spacing:.1em; font-size:10.5px; font-weight:700}
   .verify a{color:var(--info); text-decoration:none}
   .verify a:hover{text-decoration:underline}
+  .verify-status{font-size:11px; font-weight:700; letter-spacing:.03em; padding:3px 9px; border-radius:99px; border:1px solid var(--border-soft); color:var(--faint); background:var(--surface-2); white-space:nowrap}
+  .verify-status.checking{color:var(--info)}
+  .verify-status.live{color:var(--good); border-color:color-mix(in srgb,var(--good) 40%,var(--border))}
+  .verify-status.curated{color:var(--faint)}
+  .ind{font-style:normal; color:var(--faint); cursor:help; font-size:11px}
   .cardbtns{display:flex; gap:8px; margin-left:auto; flex-wrap:wrap}
   .icobtn{font:inherit; font-size:12.5px; cursor:pointer; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); border-radius:8px; padding:6px 11px}
   .icobtn:hover{color:var(--text); border-color:var(--accent)}
@@ -272,7 +277,7 @@
       <span class="spacer"></span>
       <button class="lists-link" id="openLists" type="button">Your lists</button>
     </div>
-    <p class="note">Scores &amp; India availability shown are <b>indicative</b> — tap <b>Verify</b> on any pick for live IMDb, Rotten Tomatoes and JustWatch (India) before you press play. Horror and anything on your watched lists are filtered out automatically.</p>
+    <p class="note">Each pick <b>auto-verifies live</b> when deployed — the status pill turns green with the current <b>IMDb</b>, <b>RT critics</b> and <b>India platform</b> from TMDb + OMDb. The <b>≈ RT audience</b> figure stays indicative (no free live source exists for it). Tap <b>Verify</b> to double-check on JustWatch / IMDb / RT. Horror and anything on your watched lists are filtered out automatically.</p>
   </section>
 
   <section class="results" id="results" aria-live="polite"></section>
@@ -347,6 +352,10 @@
    {id:"gunsgulaabs",title:"Guns & Gulaabs",format:"series",langs:["hi","en"],platform:"Netflix",prio:1,access:"Included",imdb:8.0,rtC:null,rtA:null,pace:"Moderate",tone:"Balanced",epLen:50,seasons:1,eps:"1 season · 7 eps",limited:false,moods:["crime","funny"],baseTaste:0.83,novelty:0.7,warn:"Some cartoonish violence.",drawback:"Not rated on Rotten Tomatoes; ends open for a season 2.",why:"A quirky '90s-set crime comedy from the <b>Stree</b> team — but tonally it's the offbeat charm of <b>Guns & humour</b>, closer to <b>Lupin</b>'s playfulness and <b>The Brothers Sun</b>'s crime-family warmth than to grim gangland drama. A fresh Hindi pick you've almost certainly missed."},
    {id:"citadel",title:"Citadel",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:5.4,rtC:52,rtA:53,pace:"Fast",tone:"Light",epLen:45,seasons:1,eps:"1 season · 6 eps",limited:false,moods:["action","thriller"],baseTaste:0.72,novelty:0.45,warn:null,drawback:"The weakest-reviewed pick here — pure spectacle over story.",why:"Included only as a glossy, brain-off option: amnesiac super-spies, exotic locations and <b>6 Underground</b>-scale action from the Russo stable. It's the least substantial title on your slate — reach for it when you want <b>Mr. & Mrs. Smith</b> gloss and nothing more."}
   ];
+
+  // Release years — improves live-lookup accuracy (disambiguates remakes/reboots).
+  var YEARS = {slowhorses:2022,recruit:2022,reacher:2022,familyman:2019,onlymurders:2021,gentlemen:2024,shrinking:2023,badsisters:2022,presumed:2024,hijack:2023,bodyguard:2018,specialops:2020,farzi:2023,fallout:2024,emily:2020,rednotice:2021,lostcity:2022,grayman:2022,murdermystery:2019,kaleidoscope:2023,fubar:2023,schitts:2015,jury:2023,oldman:2022,whitelotus:2021,gunsgulaabs:2023,citadel:2023};
+  var API = "/api/verify"; // Cloudflare Pages Function; falls back to curated data if unreachable.
 
   // ---------- state ----------
   var sel = {format:"either", language:"any", mood:"surprise", commitment:"any", energy:"any"};
@@ -453,32 +462,33 @@
     var t=x.t, inWl = !!watchlist()[t.title];
     var runline = t.format==="movie" ? (t.runtime+" min") : (t.eps);
     var scores =
-      '<span class="tag score"><b>IMDb</b> '+(t.imdb!=null?t.imdb+"/10":"n/a")+'</span>'+
-      '<span class="tag score"><b>RT Crit</b> '+rt(t.rtC)+'</span>'+
-      '<span class="tag score"><b>RT Aud</b> '+rt(t.rtA)+'</span>';
+      '<span class="tag score"><b>IMDb</b> <span class="imdb-val">'+(t.imdb!=null?t.imdb+"/10":"n/a")+'</span></span>'+
+      '<span class="tag score"><b>RT Crit</b> <span class="rtc-val">'+rt(t.rtC)+'</span></span>'+
+      '<span class="tag score"><b>RT Aud</b> '+rt(t.rtA)+' <i class="ind" title="Indicative — no free live source exists for the RT audience score">≈</i></span>';
     var facts =
       '<span class="tag"><span class="dot"></span>Pace <b>'+t.pace+'</b></span>'+
       '<span class="tag"><span class="dot"></span>Tone <b>'+t.tone+'</b></span>'+
-      '<span class="tag '+accClass(t.access)+'"><span class="dot"></span>'+t.access+'</span>';
+      '<span class="tag access-tag '+accClass(t.access)+'"><span class="dot"></span>'+t.access+'</span>';
     var warnHTML = t.warn ? '<p class="flag warn"><span class="k">Heads-up</span><span>'+t.warn+'</span></p>' : '';
     var drawHTML = t.drawback ? '<p class="flag"><span class="k">Trade-off</span><span>'+t.drawback+'</span></p>' : '';
     var confHTML = best ? ring(x.s) : '<div class="conf mini"><span class="num">'+x.s+'</span><span class="bar"><i style="width:'+x.s+'%"></i></span></div>';
 
     return ''+
-    '<article class="card'+(best?' best':'')+'">'+
+    '<article class="card'+(best?' best':'')+'" data-id="'+t.id+'">'+
       '<div class="card-top">'+
         '<div class="title-block">'+
           '<h3>'+t.title+'</h3>'+
           '<div class="sub"><span class="fmt">'+(t.format==="movie"?"Movie":"Series")+'</span>'+
             '<span>'+runline+'</span>'+
-            '<span>on <span class="platform">'+t.platform+'</span></span></div>'+
+            '<span>on <span class="platform platform-val">'+t.platform+'</span></span></div>'+
         '</div>'+ confHTML +
       '</div>'+
       '<div class="meta">'+scores+'</div>'+
       '<div class="meta">'+facts+'</div>'+
       '<p class="why">'+t.why+'</p>'+ warnHTML + drawHTML +
       '<div class="verify">'+
-        '<span>Verify live</span>'+
+        '<span class="verify-status" data-status>Curated</span>'+
+        '<span class="vlabel">Verify</span>'+
         '<a href="'+jw(t)+'" target="_blank" rel="noopener">JustWatch (India)</a>'+
         '<a href="'+imdbL(t)+'" target="_blank" rel="noopener">IMDb</a>'+
         '<a href="'+rtL(t)+'" target="_blank" rel="noopener">Rotten Tomatoes</a>'+
@@ -502,6 +512,7 @@
     R.appendChild(el('<div class="eyebrow">'+head+'</div>'));
     if(relaxed) R.appendChild(el('<p class="note" style="margin-top:0">Only a couple matched exactly, so we widened the net slightly to give you three.</p>'));
     current.forEach(function(x,i){ R.appendChild(el(cardHTML(x, i===0))); });
+    current.forEach(function(x){ verifyCard(x.t); });
 
     var win=current[0].t;
     var line = win.format==="movie"
@@ -529,6 +540,34 @@
     });
   }
   function byId(id){ for(var i=0;i<C.length;i++) if(C[i].id===id) return C[i]; return null; }
+
+  // ---------- live verification (Cloudflare Pages Function) ----------
+  var liveCache = {};
+  function verifyCard(t){
+    var root = document.querySelector('.card[data-id="'+t.id+'"]');
+    if(!root) return;
+    var st = root.querySelector('[data-status]');
+    function apply(d){
+      if(d.imdb!=null) root.querySelector('.imdb-val').textContent = d.imdb+"/10";
+      if(d.rtCritics!=null) root.querySelector('.rtc-val').textContent = d.rtCritics+"%";
+      if(d.platform) root.querySelector('.platform-val').textContent = d.platform;
+      if(d.access){
+        var a=root.querySelector('.access-tag');
+        a.className='tag access-tag '+accClass(d.access);
+        a.innerHTML='<span class="dot"></span>'+d.access;
+      }
+      st.textContent='● Live · '+(d.updated||''); st.className='verify-status live';
+    }
+    if(liveCache[t.id]){ apply(liveCache[t.id]); return; }
+    st.textContent='Checking live…'; st.className='verify-status checking';
+    var q = API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(YEARS[t.id]?"&year="+YEARS[t.id]:"");
+    fetch(q).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
+      if(!d || d.error) throw 0;
+      liveCache[t.id]=d; apply(d);
+    }).catch(function(){
+      st.textContent='Curated — live check off'; st.className='verify-status curated';
+    });
+  }
 
   // ---------- watched modal ----------
   var pendingWatched=null;
