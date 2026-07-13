@@ -74,6 +74,24 @@
   .taste{margin-bottom:4px}
   .taste h4{margin:2px 0 9px}
   .tastechips{display:flex; gap:7px; flex-wrap:wrap}
+  .ob-open{width:100%; margin-bottom:6px}
+
+  /* ---- onboarding ---- */
+  .ob-h{margin:18px 0 9px; font-size:11px; text-transform:uppercase; letter-spacing:.13em; color:var(--faint); font-weight:800}
+  .ob-search{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:11px; background:var(--card2); color:var(--text); font:inherit; font-size:14px}
+  .ob-results{display:flex; flex-direction:column; gap:6px; margin-top:8px}
+  .ob-item{display:flex; align-items:center; gap:10px; padding:6px; border:1px solid var(--line); border-radius:10px}
+  .ob-item img{width:34px; height:51px; object-fit:cover; border-radius:6px; background:var(--card2); flex-shrink:0}
+  .ob-item .t{flex:1; min-width:0; font-size:13.5px; font-weight:650; line-height:1.25}
+  .ob-item .t small{display:block; color:var(--muted); font-weight:400; font-size:12px}
+  .ob-add{flex-shrink:0; border:1px solid var(--line); background:var(--card2); color:var(--text); border-radius:8px; padding:7px 11px; font-size:12.5px; font-weight:700; cursor:pointer}
+  .ob-add.on{background:var(--good); color:#fff; border-color:transparent}
+  .ob-suggest{display:flex; flex-wrap:wrap; gap:7px}
+  .ob-chip{display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1px solid var(--line); border-radius:99px; background:var(--card2); color:var(--text); font-size:12.5px; font-weight:600; cursor:pointer}
+  .ob-chip:active{transform:scale(.96)}
+  .ob-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent}
+  .ob-chip .h{opacity:.55; font-size:11px}
+  .ob-chip.on .h{opacity:1}
   .icon{width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--card);
     color:var(--muted); font-size:16px; display:grid; place-items:center; cursor:pointer}
   .icon:active{transform:scale(.94)}
@@ -367,8 +385,25 @@
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lm-title">
     <div class="grab"></div>
     <h3 id="lm-title">Your lists</h3>
-    <div class="msub">Marked titles move here and stop being recommended. Saved on this device.</div>
+    <div class="msub" id="lm-sub">Marked titles move here and stop being recommended.</div>
     <div class="listcol" id="listBody"></div>
+  </div>
+</div>
+
+<!-- onboarding sheet -->
+<div class="overlay" id="onbOverlay">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+    <div class="grab"></div>
+    <h3 id="onb-title">Set up</h3>
+    <div class="msub" id="onbSub">Add the genres and titles you love — this shapes your picks and keeps them from being recommended again.</div>
+    <h4 class="ob-h">Genres you love</h4>
+    <div class="chips tastechips" id="onbGenres"></div>
+    <h4 class="ob-h">Add favourites</h4>
+    <input class="ob-search" id="onbSearch" type="search" placeholder="Search any movie or show…" autocomplete="off" autocapitalize="none">
+    <div class="ob-results" id="onbResults"></div>
+    <h4 class="ob-h">Quick-add from these</h4>
+    <div class="ob-suggest" id="onbSuggest"></div>
+    <div class="mrow"><button class="btn primary" id="onbDone" type="button">Done</button></div>
   </div>
 </div>
 
@@ -420,20 +455,64 @@
     get:function(k,d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } },
     set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   };
+
+  // ---- cloud sync (mirrors shared keys to /api/state; local is the working store) ----
+  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_)/;
+  var _applying=false, _pushT=null, _lsset=LS.set;
+  LS.set=function(k,v){ _lsset(k,v); if(!_applying && SYNCRE.test(k)) schedulePush(); };
+  function listsOpen(){ return document.getElementById("listsOverlay").classList.contains("show"); }
+  function collectLocal(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(SYNCRE.test(k)) o[k]=LS.get(k,null); } return o; }
+  function applyCloud(obj){
+    _applying=true; var changed=false;
+    Object.keys(obj||{}).forEach(function(k){
+      if(!SYNCRE.test(k)) return;
+      var inc=obj[k], loc=LS.get(k,null), merged;
+      if(Array.isArray(inc)){ var s={}; [].concat(loc||[],inc).forEach(function(x){s[x]=1;}); merged=Object.keys(s); }
+      else if(inc && typeof inc==="object"){ merged=Object.assign({},loc||{},inc); }
+      else merged=inc;
+      if(JSON.stringify(loc)!==JSON.stringify(merged)){ LS.set(k,merged); changed=true; }
+    });
+    _applying=false;
+    if(changed){ if(listsOpen()) renderLists(); if(hasRun) render(); }
+  }
+  function schedulePush(){ if(_pushT) clearTimeout(_pushT); _pushT=setTimeout(doPush,800); }
+  function doPush(){ var p=collectLocal(); if(!Object.keys(p).length) return;
+    fetch("/api/state",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(p)})
+      .then(function(r){return r.ok?r.json():null;})
+      .then(function(d){ if(d && typeof d==="object" && d.ok!==false && Object.keys(d).length) applyCloud(d); })
+      .catch(function(){}); }
+  function pullCloud(){ fetch("/api/state").then(function(r){return r.ok?r.json():null;})
+      .then(function(d){ if(d && typeof d==="object" && Object.keys(d).length) applyCloud(d); }).catch(function(){}); }
+  function initSync(){
+    fetch("/api/state").then(function(r){return r.ok?r.json():null;}).then(function(d){
+      if(d && typeof d==="object" && Object.keys(d).length) applyCloud(d);
+      schedulePush();
+    }).catch(function(){});
+    window.addEventListener("focus", pullCloud);
+    document.addEventListener("visibilitychange", function(){ if(!document.hidden) pullCloud(); });
+  }
+
   function watchlist(){ return LS.get("sp_wl_"+profile,{}); }              // active profile's queue
   function likedOf(p){ return LS.get("sp_liked_"+p,{}); }
   function dislikedOf(p){ return LS.get("sp_disliked_"+p,{}); }
   function prefsOf(p){ return LS.get("sp_pref_"+p,[]); }                   // taste-bias mood keys
   function watchedMap(){ return LS.get("sp_watched",{}); }                 // global: seen together
   function isWatched(t){
-    if(watchedMap()[t.title]) return true;
-    for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===t.title.toLowerCase()) return true; }
+    var title=t.title;
+    if(watchedMap()[title]) return true;
+    if(likedOf(profile)[title] || dislikedOf(profile)[title]) return true;  // this profile's own favourites/passes
+    for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===title.toLowerCase()) return true; }
     return false;
+  }
+  function byTitle(x){ for(var i=0;i<C.length;i++) if(C[i].title.toLowerCase()===String(x).toLowerCase()) return C[i]; return null; }
+  function prefsEff(p){ var s={}; prefsOf(p).forEach(function(x){s[x]=1;});
+    var lk=likedOf(p); Object.keys(lk).forEach(function(title){ var t=byTitle(title); if(t) t.moods.forEach(function(m){s[m]=1;}); });
+    return Object.keys(s);
   }
   function moodAff(pref, t){ if(!pref.length) return 1; return t.moods.some(function(m){return pref.indexOf(m)>=0;})?1:0.4; }
   function affinity(t){
-    if(profile==="both") return (moodAff(prefsOf("sulay"),t)+moodAff(prefsOf("tanya"),t))/2;
-    return moodAff(prefsOf(profile), t);
+    if(profile==="both") return (moodAff(prefsEff("sulay"),t)+moodAff(prefsEff("tanya"),t))/2;
+    return moodAff(prefsEff(profile), t);
   }
   function nameOf(p){ return p==="sulay"?"Sulay":p==="tanya"?"Tanya":"Both of you"; }
 
@@ -642,6 +721,7 @@
       html+='<p class="mhint">“Both” blends Sulay’s and Tanya’s taste for shared enjoyment. Set each person’s taste from their own tab.</p>';
     } else {
       var pref=prefsOf(profile);
+      html+='<button class="btn primary ob-open" type="button" id="obOpenBtn">✨ Build '+nm+'’s favourites</button>';
       html+='<div class="taste"><h4>'+nm+'’s taste <span class="c">bias picks</span></h4><div class="chips tastechips">'+
         MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("")+
         '</div><p class="mhint">Pick the genres '+nm+' leans toward — picks in this tab get nudged their way.</p></div>';
@@ -656,6 +736,7 @@
       html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo");
     }
     body.innerHTML=html;
+    var obb=document.getElementById("obOpenBtn"); if(obb) obb.onclick=function(){ openOnboard(profile); };
     body.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
     body.querySelectorAll(".tastechips .chip").forEach(function(c){ c.onclick=function(){
       var arr=prefsOf(profile), k=c.dataset.mood, i=arr.indexOf(k);
@@ -663,6 +744,38 @@
       LS.set("sp_pref_"+profile,arr); c.setAttribute("aria-pressed", arr.indexOf(k)>=0?"true":"false");
     }; });
   }
+
+  // ---- onboarding / favourites builder ----
+  var onbP="sulay";
+  function toggleFav(p,title,extra){ var k="sp_liked_"+p, m=LS.get(k,{}); if(m[title]) delete m[title]; else m[title]=Object.assign({fav:true},extra||{}); LS.set(k,m); }
+  function renderSuggest(){
+    var liked=likedOf(onbP), sug=C.slice().sort(function(a,b){return b.baseTaste-a.baseTaste;}).slice(0,14);
+    document.getElementById("onbSuggest").innerHTML=sug.map(function(t){ return '<button class="ob-chip'+(liked[t.title]?" on":"")+'" type="button" data-title="'+encodeURIComponent(t.title)+'"><span class="h">❤</span>'+t.title+'</button>'; }).join("");
+    document.querySelectorAll("#onbSuggest .ob-chip").forEach(function(c){ c.onclick=function(){ var title=decodeURIComponent(c.dataset.title); toggleFav(onbP,title); c.classList.toggle("on", !!likedOf(onbP)[title]); }; });
+  }
+  function openOnboard(p){
+    onbP=p;
+    document.getElementById("onb-title").textContent="Set up "+nameOf(p);
+    var pref=prefsOf(p);
+    document.getElementById("onbGenres").innerHTML=MOODOPTS.map(function(m){ return '<button class="chip" type="button" data-mood="'+m.k+'" aria-pressed="'+(pref.indexOf(m.k)>=0)+'">'+m.emo+' '+m.lbl+'</button>'; }).join("");
+    document.querySelectorAll("#onbGenres .chip").forEach(function(c){ c.onclick=function(){ var arr=prefsOf(p), k=c.dataset.mood, i=arr.indexOf(k); if(i>=0)arr.splice(i,1);else arr.push(k); LS.set("sp_pref_"+p,arr); c.setAttribute("aria-pressed", arr.indexOf(k)>=0?"true":"false"); }; });
+    renderSuggest();
+    document.getElementById("onbSearch").value=""; document.getElementById("onbResults").innerHTML="";
+    document.getElementById("onbOverlay").classList.add("show");
+  }
+  var _searchT=null;
+  document.getElementById("onbSearch").addEventListener("input",function(){ var q=this.value.trim(); if(_searchT)clearTimeout(_searchT); if(!q){ document.getElementById("onbResults").innerHTML=""; return; } _searchT=setTimeout(function(){ doSearch(q); },300); });
+  function doSearch(q){
+    fetch("/api/search?q="+encodeURIComponent(q)).then(function(r){return r.ok?r.json():null;}).then(function(d){
+      var res=(d&&d.results)||[], liked=likedOf(onbP), box=document.getElementById("onbResults");
+      if(!res.length){ box.innerHTML='<div class="mhint">No matches — try a different spelling.</div>'; return; }
+      box.innerHTML=res.map(function(x){ var on=!!liked[x.title];
+        var thumb = x.poster ? '<img alt="" src="'+x.poster+'">' : '<div style="width:34px;height:51px;border-radius:6px;background:var(--card2);flex-shrink:0"></div>';
+        return '<div class="ob-item">'+thumb+'<div class="t">'+x.title+'<small>'+(x.type==="series"?"Series":"Movie")+(x.year?" · "+x.year:"")+'</small></div><button class="ob-add'+(on?" on":"")+'" type="button" data-title="'+encodeURIComponent(x.title)+'" data-year="'+(x.year||"")+'" data-type="'+x.type+'">'+(on?"✓ Added":"＋ Add")+'</button></div>'; }).join("");
+      box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; }; });
+    }).catch(function(){});
+  }
+  document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); if(hasRun) recommend(); };
 
   // wiring
   document.getElementById("moods").addEventListener("click",function(e){
@@ -680,6 +793,7 @@
     var b=e.target.closest(".ptab"); if(!b) return;
     profile=b.dataset.p; LS.set("sp_profile",profile); syncProfile();
     if(hasRun) recommend();
+    if(profile!=="both" && !LS.get("sp_onboarded_"+profile,false)) openOnboard(profile);
   });
   document.querySelectorAll(".chips").forEach(function(g){
     g.addEventListener("click",function(e){
@@ -696,9 +810,9 @@
   rtog.onclick=function(){ var open=document.getElementById("refine").classList.toggle("open"); rtog.setAttribute("aria-expanded", open?"true":"false"); };
 
   document.getElementById("openLists").onclick=function(){ renderLists(); document.getElementById("listsOverlay").classList.add("show"); };
-  [ "watchedOverlay","listsOverlay" ].forEach(function(id){
+  [ "watchedOverlay","listsOverlay","onbOverlay" ].forEach(function(id){
     var o=document.getElementById(id);
-    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if(id==="listsOverlay") recommend(); } });
+    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if((id==="listsOverlay"||id==="onbOverlay") && hasRun) recommend(); } });
   });
 
   // restore saved profile
@@ -712,5 +826,8 @@
     var next=cur==="dark"?"light":"dark"; root.setAttribute("data-theme",next); LS.set("sp_theme",next);
     document.querySelector('meta[name=theme-color]').setAttribute("content", next==="dark"?"#0b0d12":"#ffffff");
   };
+
+  // start cloud sync
+  initSync();
 })();
 </script>

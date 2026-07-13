@@ -36,6 +36,20 @@ source, so it stays indicative (marked ≈).
 Pushes to a non-production branch produce a **preview** deployment; promote by
 setting this branch as the production branch, or merge into the default branch.
 
+### Cloud sync (optional but recommended)
+
+Profiles, favourites, taste and watch history sync across devices via a
+**Cloudflare KV** namespace. To enable it: create a KV namespace in the
+dashboard (Storage & Databases → KV), then bind it in `wrangler.jsonc`:
+
+```jsonc
+"kv_namespaces": [ { "binding": "STATE", "id": "<your-namespace-id>" } ]
+```
+
+The Worker exposes `GET/POST /api/state` (shared household state, union-merged)
+and `GET /api/search` (TMDb title search for the favourites builder). Without
+the binding the app still works, storing everything locally per device.
+
 ## Profiles
 
 The app has three profiles — **Both**, **Sulay**, **Tanya** — switched from the
