@@ -39,7 +39,7 @@
     background:radial-gradient(120% 60% at 80% -10%, color-mix(in srgb,var(--accent) 14%, transparent), transparent 55%), linear-gradient(var(--bg2), var(--bg));
     background-attachment:fixed; min-height:100dvh;
     padding-bottom:calc(96px + env(safe-area-inset-bottom));
-    -webkit-font-smoothing:antialiased;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
   }
   .app{max-width:640px; margin:0 auto; padding:0 15px}
   .noscroll::-webkit-scrollbar{display:none}
@@ -54,12 +54,13 @@
     border-bottom:1px solid color-mix(in srgb,var(--line) 60%, transparent);
     padding-top:calc(12px + env(safe-area-inset-top));
   }
-  .logo{display:flex; align-items:center; gap:9px; min-width:0}
+  .logo{display:flex; align-items:center; gap:9px; min-width:0; flex:1 1 auto; overflow:hidden}
   .logo .dot{width:26px; height:26px; border-radius:8px; flex-shrink:0;
     background:linear-gradient(135deg,var(--accent),var(--accent2)); display:grid; place-items:center; font-size:15px}
-  .logo b{font-size:15px; letter-spacing:.04em; font-weight:750; white-space:nowrap}
+  .logo b{font-size:15px; letter-spacing:.04em; font-weight:750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0}
   .logo span{color:var(--muted); font-weight:600}
-  .hbtns{display:flex; gap:8px}
+  .hbtns{display:flex; gap:8px; flex-shrink:0}
+  @media(max-width:380px){ .logo span{display:none} }
   .icon{width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--card);
     color:var(--muted); font-size:16px; display:grid; place-items:center; cursor:pointer}
   .icon:active{transform:scale(.94)}
@@ -182,7 +183,7 @@
     background:linear-gradient(transparent, color-mix(in srgb,var(--bg) 92%, transparent) 22%)}
   .dock.show{display:block}
   .dock .inner{max-width:640px; margin:0 auto; width:100%; display:flex; gap:9px}
-  .dbtn{height:50px; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:8px}
+  .dbtn{height:50px; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:8px; white-space:nowrap}
   .dbtn:active{transform:scale(.98)}
   .dbtn.primary{flex:1; color:var(--accent-ink); border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 12px 26px -12px color-mix(in srgb,var(--accent) 75%,transparent)}
   .dbtn.ghost{padding:0 16px; background:color-mix(in srgb,var(--card) 80%,transparent); backdrop-filter:blur(10px); color:var(--text)}
@@ -213,7 +214,26 @@
   .listcol li .sc{font-family:var(--mono); color:var(--accent)}
   .listcol li .x{cursor:pointer; color:var(--faint); font-weight:800}
 
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* very small phones + foldables */
+  @media(max-width:360px){
+    .app{padding:0 12px}
+    .hero{padding:16px 2px 10px}
+    .poster{width:82px} .rec.best .poster{width:96px}
+    .mood{padding:12px 11px; min-height:66px}
+    .mood .emo{font-size:19px} .mood .lbl{font-size:12.5px}
+    .rec{padding:11px; gap:11px}
+    .dbtn{font-size:14px}
+    .qbtn{min-width:0}
+  }
+  /* landscape phones: let the sticky header shrink so content shows */
+  @media(max-height:460px) and (orientation:landscape){
+    header{position:static}
+    .hero{padding:14px 2px 8px}
+  }
+  /* large screens: keep it an app column, comfortably centred */
+  @media(min-width:900px){ .app{max-width:680px} }
+  img{max-width:100%}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
   a{color:var(--accent)}
 </style>
 
@@ -302,7 +322,7 @@
 <div class="dock" id="dock">
   <div class="inner">
     <button class="dbtn ghost" id="toTop" type="button">↑ Mood</button>
-    <button class="dbtn primary" id="reshuffle" type="button">🔄 Not feeling it — reshuffle</button>
+    <button class="dbtn primary" id="reshuffle" type="button">🔄 Not feeling it</button>
   </div>
 </div>
 
