@@ -92,6 +92,7 @@
   .ob-chip.on{background:var(--accent); color:var(--accent-ink); border-color:transparent}
   .ob-chip .h{opacity:.55; font-size:11px}
   .ob-chip.on .h{opacity:1}
+  .ob-clear{padding:7px 11px; border:1px dashed var(--line); border-radius:99px; background:transparent; color:var(--bad); font-size:12.5px; font-weight:700; cursor:pointer}
   .onblock{margin-top:16px}
   .onblock .rbtn{width:100%; padding:11px; border-radius:11px; font-size:13.5px}
   .pin-in{letter-spacing:.35em; text-align:center; font-size:18px; font-weight:700}
@@ -816,8 +817,9 @@
     var liked=likedOf(onbP), keys=Object.keys(liked), el=document.getElementById("onbMine");
     document.getElementById("onbMineCount").textContent=keys.length;
     if(!keys.length){ el.innerHTML='<span class="mhint">Nothing yet — search above or quick-add below.</span>'; return; }
-    el.innerHTML=keys.map(function(t){ return '<button class="ob-chip on" type="button" data-title="'+encodeURIComponent(t)+'">'+t+' <span class="h">✕</span></button>'; }).join("");
+    el.innerHTML=keys.map(function(t){ return '<button class="ob-chip on" type="button" data-title="'+encodeURIComponent(t)+'">'+t+' <span class="h">✕</span></button>'; }).join("")+'<button class="ob-clear" id="onbClearBtn" type="button">🗑 Clear all</button>';
     el.querySelectorAll(".ob-chip").forEach(function(c){ c.onclick=function(){ toggleFav(onbP, decodeURIComponent(c.dataset.title)); renderMine(); renderSuggest(); }; });
+    var cb=document.getElementById("onbClearBtn"); if(cb) cb.onclick=function(){ if(window.confirm("Remove all of "+nameOf(onbP)+"’s favourites?")){ LS.set("sp_liked_"+onbP,{}); renderMine(); renderSuggest(); } };
   }
   function openOnboard(p){
     onbP=p;
@@ -879,7 +881,7 @@
       box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; renderMine(); }; });
     }).catch(function(){});
   }
-  document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); if(hasRun) recommend(); };
+  document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); recommend(); };
 
   // wiring
   document.getElementById("moods").addEventListener("click",function(e){
