@@ -60,7 +60,7 @@ export async function verify(request, env) {
   const OMDB = env.OMDB_API_KEY;
   const out = {
     title, imdb: null, rtCritics: null, access: null, platform: null,
-    providers: [], imdbId: null, justwatch: null,
+    providers: [], imdbId: null, justwatch: null, poster: null, backdrop: null,
     updated: new Date().toISOString().slice(0, 10), source: {},
   };
 
@@ -72,6 +72,8 @@ export async function verify(request, env) {
     const hit = search && search.results && search.results[0];
     if (hit) {
       out.source.tmdbId = hit.id;
+      if (hit.poster_path) out.poster = "https://image.tmdb.org/t/p/w342" + hit.poster_path;
+      if (hit.backdrop_path) out.backdrop = "https://image.tmdb.org/t/p/w780" + hit.backdrop_path;
       const detail = await getJSON(
         `https://api.themoviedb.org/3/${type}/${hit.id}?api_key=${TMDB}&append_to_response=external_ids,watch/providers`
       );

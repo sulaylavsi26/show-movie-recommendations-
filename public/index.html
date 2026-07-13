@@ -1,318 +1,320 @@
 <title>Tonight's Pick — Sulay & Tanya</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
 <style>
   :root{
-    --bg:#0f1117; --bg-grad:#12151f; --surface:#171a23; --surface-2:#1e2231;
-    --border:#2a2f3d; --border-soft:#232838;
-    --text:#ece9e1; --muted:#9aa0ae; --faint:#6b7280;
-    --accent:#f3b24b; --accent-ink:#1a1205; --accent-soft:#3a2c12;
-    --rose:#e8698b;
-    --good:#5cc08a; --warn:#e8a24c; --bad:#e8697a; --info:#79a8e0;
-    --ring-track:#262b3a;
-    --shadow:0 18px 50px -20px rgba(0,0,0,.7);
-    --radius:16px;
+    --bg:#0b0d12; --bg2:#0f1219; --card:#151922; --card2:#1c212c; --line:#262c38;
+    --text:#f3f0ea; --muted:#98a0b0; --faint:#68707f;
+    --accent:#ffb14a; --accent2:#ff7a59; --accent-ink:#20140a;
+    --good:#4ecb8b; --warn:#f0a94a; --bad:#ff6f70;
+    --shadow:0 20px 40px -22px rgba(0,0,0,.75);
+    --r:18px; --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   }
   @media (prefers-color-scheme:light){
     :root{
-      --bg:#f4efe4; --bg-grad:#efe8da; --surface:#ffffff; --surface-2:#f6f1e7;
-      --border:#e2d9c8; --border-soft:#eadfce;
-      --text:#20222b; --muted:#6a6f7d; --faint:#9a9382;
-      --accent:#b3730f; --accent-ink:#fff7e9; --accent-soft:#f2e2c4;
-      --rose:#c4436a;
-      --good:#2f9d68; --warn:#c07d1a; --bad:#c0475a; --info:#3f76bd;
-      --ring-track:#e6ddcc;
-      --shadow:0 18px 44px -22px rgba(60,45,15,.35);
+      --bg:#f4efe5; --bg2:#efe9dc; --card:#ffffff; --card2:#f6f1e7; --line:#e7ddca;
+      --text:#1a1c22; --muted:#5f6675; --faint:#97907f;
+      --accent:#c9791a; --accent2:#d8552f; --accent-ink:#fff6e9;
+      --good:#2c9d67; --warn:#bd7d1a; --bad:#cf4b4b;
+      --shadow:0 20px 40px -24px rgba(70,52,20,.35);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0f1117; --bg-grad:#12151f; --surface:#171a23; --surface-2:#1e2231;
-    --border:#2a2f3d; --border-soft:#232838; --text:#ece9e1; --muted:#9aa0ae; --faint:#6b7280;
-    --accent:#f3b24b; --accent-ink:#1a1205; --accent-soft:#3a2c12; --rose:#e8698b;
-    --good:#5cc08a; --warn:#e8a24c; --bad:#e8697a; --info:#79a8e0; --ring-track:#262b3a;
-    --shadow:0 18px 50px -20px rgba(0,0,0,.7);
+    --bg:#0b0d12; --bg2:#0f1219; --card:#151922; --card2:#1c212c; --line:#262c38;
+    --text:#f3f0ea; --muted:#98a0b0; --faint:#68707f; --accent:#ffb14a; --accent2:#ff7a59; --accent-ink:#20140a;
+    --good:#4ecb8b; --warn:#f0a94a; --bad:#ff6f70; --shadow:0 20px 40px -22px rgba(0,0,0,.75);
   }
   :root[data-theme="light"]{
-    --bg:#f4efe4; --bg-grad:#efe8da; --surface:#ffffff; --surface-2:#f6f1e7;
-    --border:#e2d9c8; --border-soft:#eadfce; --text:#20222b; --muted:#6a6f7d; --faint:#9a9382;
-    --accent:#b3730f; --accent-ink:#fff7e9; --accent-soft:#f2e2c4; --rose:#c4436a;
-    --good:#2f9d68; --warn:#c07d1a; --bad:#c0475a; --info:#3f76bd; --ring-track:#e6ddcc;
-    --shadow:0 18px 44px -22px rgba(60,45,15,.35);
+    --bg:#f4efe5; --bg2:#efe9dc; --card:#ffffff; --card2:#f6f1e7; --line:#e7ddca;
+    --text:#1a1c22; --muted:#5f6675; --faint:#97907f; --accent:#c9791a; --accent2:#d8552f; --accent-ink:#fff6e9;
+    --good:#2c9d67; --warn:#bd7d1a; --bad:#cf4b4b; --shadow:0 20px 40px -24px rgba(70,52,20,.35);
   }
-  *{box-sizing:border-box}
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
   body{
-    margin:0; font-family:var(--sans); color:var(--text);
-    background:
-      radial-gradient(1200px 600px at 78% -8%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
-      linear-gradient(180deg, var(--bg-grad), var(--bg));
-    background-attachment:fixed; min-height:100vh; line-height:1.5;
+    margin:0; font-family:var(--sans); color:var(--text); line-height:1.5;
+    background:radial-gradient(120% 60% at 80% -10%, color-mix(in srgb,var(--accent) 14%, transparent), transparent 55%), linear-gradient(var(--bg2), var(--bg));
+    background-attachment:fixed; min-height:100dvh;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom));
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:1080px; margin:0 auto; padding:26px 20px 80px}
+  .app{max-width:640px; margin:0 auto; padding:0 15px}
+  .noscroll::-webkit-scrollbar{display:none}
+  .noscroll{scrollbar-width:none; -ms-overflow-style:none}
+  button{font-family:inherit}
 
-  /* Header / marquee */
-  header.deck{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:22px}
-  .brand h1{
-    margin:0; font-size:clamp(26px,5vw,40px); font-weight:800; letter-spacing:.14em;
-    text-transform:uppercase; line-height:.98; text-wrap:balance;
+  /* ---- header ---- */
+  header{
+    position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between;
+    padding:12px 15px; margin:0 -15px 4px; gap:10px;
+    background:color-mix(in srgb,var(--bg) 82%, transparent); backdrop-filter:blur(14px);
+    border-bottom:1px solid color-mix(in srgb,var(--line) 60%, transparent);
+    padding-top:calc(12px + env(safe-area-inset-top));
   }
-  .brand h1 .glow{color:var(--accent)}
-  .brand p{margin:8px 0 0; color:var(--muted); font-size:14px; letter-spacing:.02em}
-  .brand p b{color:var(--text); font-weight:600}
-  .theme-btn{
-    background:var(--surface); color:var(--muted); border:1px solid var(--border);
-    border-radius:999px; padding:8px 14px; font-size:13px; cursor:pointer; font-family:inherit;
+  .logo{display:flex; align-items:center; gap:9px; min-width:0}
+  .logo .dot{width:26px; height:26px; border-radius:8px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--accent),var(--accent2)); display:grid; place-items:center; font-size:15px}
+  .logo b{font-size:15px; letter-spacing:.04em; font-weight:750; white-space:nowrap}
+  .logo span{color:var(--muted); font-weight:600}
+  .hbtns{display:flex; gap:8px}
+  .icon{width:38px; height:38px; border-radius:11px; border:1px solid var(--line); background:var(--card);
+    color:var(--muted); font-size:16px; display:grid; place-items:center; cursor:pointer}
+  .icon:active{transform:scale(.94)}
+
+  /* ---- hero prompt ---- */
+  .hero{padding:20px 2px 14px}
+  .hero h1{margin:0; font-size:clamp(24px,7vw,32px); font-weight:800; letter-spacing:-.02em; line-height:1.08; text-wrap:balance}
+  .hero h1 em{font-style:normal; background:linear-gradient(120deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .hero p{margin:8px 0 0; color:var(--muted); font-size:14.5px}
+
+  /* ---- mood grid ---- */
+  .section-label{font-size:11px; text-transform:uppercase; letter-spacing:.16em; color:var(--faint); font-weight:800; margin:18px 2px 10px}
+  .moods{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  @media(min-width:480px){ .moods{grid-template-columns:repeat(4,1fr)} }
+  .mood{
+    display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-height:74px;
+    padding:13px; border-radius:15px; border:1px solid var(--line); background:var(--card);
+    color:var(--text); cursor:pointer; text-align:left; transition:transform .12s, border-color .12s, background .12s;
   }
-  .theme-btn:hover{color:var(--text); border-color:var(--accent)}
-
-  /* Control panel */
-  .panel{
-    background:linear-gradient(180deg, var(--surface), color-mix(in srgb,var(--surface) 88%, var(--bg)));
-    border:1px solid var(--border); border-radius:var(--radius); padding:18px 18px 20px; box-shadow:var(--shadow);
+  .mood .emo{font-size:21px; line-height:1}
+  .mood .lbl{font-size:13.5px; font-weight:650; letter-spacing:.01em}
+  .mood:active{transform:scale(.97)}
+  .mood[aria-pressed="true"]{
+    border-color:transparent; color:var(--accent-ink);
+    background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 10px 22px -12px color-mix(in srgb,var(--accent) 70%,transparent);
   }
-  .row{display:flex; gap:22px; flex-wrap:wrap; margin-bottom:14px}
-  .field{flex:1 1 200px; min-width:160px}
-  .field > label{
-    display:block; font-size:11px; text-transform:uppercase; letter-spacing:.14em;
-    color:var(--faint); margin-bottom:9px; font-weight:700;
-  }
-  .chips{display:flex; flex-wrap:wrap; gap:7px}
-  .chip{
-    appearance:none; font-family:inherit; cursor:pointer; font-size:13px; line-height:1;
-    padding:8px 12px; border-radius:999px; border:1px solid var(--border);
-    background:var(--surface-2); color:var(--muted); transition:.15s;
-  }
-  .chip:hover{color:var(--text); border-color:var(--faint)}
-  .chip[aria-pressed="true"]{
-    background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600;
-  }
-  .chip:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .mood[aria-pressed="true"] .lbl{font-weight:750}
 
-  .actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:6px; padding-top:16px; border-top:1px solid var(--border-soft)}
-  .btn{
-    font-family:inherit; cursor:pointer; font-size:14px; border-radius:11px; padding:11px 18px;
-    border:1px solid var(--border); background:var(--surface-2); color:var(--text); transition:.15s; font-weight:600;
-  }
-  .btn:hover{border-color:var(--accent); color:var(--text)}
-  .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  .btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
-  .btn.primary:hover{filter:brightness(1.05)}
-  .btn.ghost{background:transparent; color:var(--muted)}
-  .spacer{flex:1}
-  .lists-link{background:transparent; border:none; color:var(--muted); cursor:pointer; font:inherit; font-size:13px; text-decoration:underline; text-underline-offset:3px}
-  .lists-link:hover{color:var(--accent)}
+  /* ---- quick + refine ---- */
+  .quick{display:flex; gap:9px; margin-top:12px; flex-wrap:wrap}
+  .qbtn{flex:1; min-width:120px; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:12px; border-radius:13px; border:1px solid var(--line); background:var(--card); color:var(--text);
+    font-size:14px; font-weight:650; cursor:pointer}
+  .qbtn:active{transform:scale(.98)}
+  .refine-toggle{margin:14px 2px 0; display:flex; align-items:center; gap:6px; background:none; border:none;
+    color:var(--muted); font-size:13px; font-weight:650; cursor:pointer; padding:4px 0}
+  .refine-toggle .chev{transition:transform .2s}
+  .refine-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
+  .refine{overflow:hidden; max-height:0; transition:max-height .28s ease}
+  .refine.open{max-height:660px}
+  .refine-inner{padding:12px 0 2px; display:flex; flex-direction:column; gap:14px}
+  .fgroup > label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.13em; color:var(--faint); font-weight:800; margin-bottom:8px}
+  .chips{display:flex; gap:7px; flex-wrap:wrap}
+  .chip{padding:8px 13px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--muted);
+    font-size:13px; cursor:pointer}
+  .chip:active{transform:scale(.96)}
+  .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 16%, var(--card)); border-color:var(--accent); color:var(--text); font-weight:650}
 
-  .note{font-size:12px; color:var(--faint); margin:14px 2px 0; line-height:1.6}
-  .note a{color:var(--muted)}
+  /* ---- results ---- */
+  .results{margin-top:22px; display:flex; flex-direction:column; gap:14px}
+  .eyebrow{display:flex; align-items:center; gap:10px; font-size:11px; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); font-weight:800; margin:6px 2px 0}
+  .eyebrow.alt{color:var(--faint)}
+  .eyebrow::after{content:""; flex:1; height:1px; background:var(--line)}
 
-  /* Results */
-  .results{margin-top:26px; display:flex; flex-direction:column; gap:18px}
-  .eyebrow{display:flex; align-items:center; gap:10px; margin:6px 2px 2px; font-size:12px; text-transform:uppercase; letter-spacing:.16em; color:var(--faint); font-weight:700}
-  .eyebrow::after{content:""; flex:1; height:1px; background:var(--border-soft)}
+  .rec{display:flex; gap:13px; padding:13px; border-radius:var(--r); border:1px solid var(--line); background:var(--card); position:relative}
+  .rec.best{background:linear-gradient(180deg, color-mix(in srgb,var(--accent) 9%, var(--card)), var(--card)); border-color:color-mix(in srgb,var(--accent) 45%, var(--line)); box-shadow:var(--shadow)}
+  .poster{position:relative; width:96px; flex-shrink:0; aspect-ratio:2/3; border-radius:12px; overflow:hidden;
+    background:linear-gradient(150deg,var(--card2),color-mix(in srgb,var(--accent) 22%, var(--card2))); background-size:cover; background-position:center}
+  .rec.best .poster{width:112px}
+  .poster::after{content:attr(data-init); position:absolute; inset:0; display:grid; place-items:center; font-size:26px; font-weight:800; color:color-mix(in srgb,var(--text) 30%,transparent); letter-spacing:.02em}
+  .poster.has::after{content:""}
+  .matchbadge{position:absolute; top:6px; left:6px; z-index:2; font-family:var(--mono); font-size:11px; font-weight:700;
+    color:var(--accent-ink); background:linear-gradient(135deg,var(--accent),var(--accent2)); padding:2px 7px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .matchbadge small{font-weight:600; opacity:.8}
 
-  .card{
-    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-    padding:20px; position:relative; overflow:hidden;
-  }
-  .card.best{border-color:color-mix(in srgb,var(--accent) 55%, var(--border)); box-shadow:var(--shadow)}
-  .card.best::before{content:""; position:absolute; inset:0 auto 0 0; width:4px; background:linear-gradient(var(--accent),var(--rose))}
-  .card-top{display:flex; justify-content:space-between; gap:16px; align-items:flex-start}
-  .title-block{min-width:0}
-  .card h3{margin:0; font-size:clamp(19px,3vw,24px); font-weight:750; letter-spacing:-.01em; text-wrap:balance}
-  .sub{display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:8px; font-size:13px; color:var(--muted)}
-  .sub .fmt{color:var(--text); font-weight:600}
-
-  .conf{display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0}
-  .conf svg{transform:rotate(-90deg)}
-  .conf .num{font-family:var(--mono); font-weight:700; font-size:15px}
-  .conf small{font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint)}
-  .conf.mini{flex-direction:row; align-items:center; gap:8px}
-  .conf.mini .bar{width:70px; height:7px; border-radius:99px; background:var(--ring-track); overflow:hidden}
-  .conf.mini .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--rose))}
-
-  .meta{display:flex; flex-wrap:wrap; gap:7px; margin-top:14px}
-  .tag{font-size:12px; padding:5px 10px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border-soft); color:var(--muted); display:inline-flex; align-items:center; gap:6px}
-  .tag b{color:var(--text); font-weight:650}
-  .tag .dot{width:7px; height:7px; border-radius:99px; background:var(--muted)}
-  .tag.score{font-family:var(--mono)}
-  .tag.included .dot{background:var(--good)} .tag.included{color:var(--good)}
-  .tag.rent .dot{background:var(--warn)} .tag.rent{color:var(--warn)}
-  .tag.extra .dot{background:var(--bad)} .tag.extra{color:var(--bad)}
-
-  .platform{font-weight:700; color:var(--text)}
-  .why{margin:15px 0 0; font-size:14.5px; line-height:1.62; color:var(--text)}
+  .rbody{flex:1; min-width:0; display:flex; flex-direction:column; gap:9px}
+  .rbody h3{margin:0; font-size:17px; font-weight:750; letter-spacing:-.01em; line-height:1.2}
+  .rec.best .rbody h3{font-size:19px}
+  .rmeta{display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; margin:0 -2px}
+  .pill{flex-shrink:0; font-size:11.5px; padding:4px 9px; border-radius:8px; background:var(--card2); border:1px solid color-mix(in srgb,var(--line) 70%,transparent); color:var(--muted); white-space:nowrap; display:inline-flex; align-items:center; gap:4px}
+  .pill b{color:var(--text); font-weight:700}
+  .pill.sc{font-family:var(--mono)}
+  .pill.dim{opacity:.72}
+  .pill.plat{color:var(--text); font-weight:650}
+  .pill.access-tag.included{color:var(--good); border-color:color-mix(in srgb,var(--good) 40%,var(--line))}
+  .pill.access-tag.rent{color:var(--warn); border-color:color-mix(in srgb,var(--warn) 40%,var(--line))}
+  .pill.access-tag.extra{color:var(--bad); border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+  .why{margin:0; font-size:13.5px; line-height:1.55; color:color-mix(in srgb,var(--text) 88%, var(--muted))}
   .why b{color:var(--accent); font-weight:650}
-  .flag{margin-top:11px; font-size:13px; display:flex; gap:8px; align-items:flex-start; color:var(--muted)}
+  .rec:not(.best) .why{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
+  .rec:not(.best) .why.exp{-webkit-line-clamp:unset}
+  .morebtn{background:none; border:none; color:var(--accent); font-size:12.5px; font-weight:650; cursor:pointer; padding:0; margin-top:-4px; align-self:flex-start}
+  .flag{margin:0; font-size:12px; line-height:1.45; display:flex; gap:6px; color:var(--muted)}
   .flag.warn{color:var(--warn)}
-  .flag .k{font-weight:700; text-transform:uppercase; font-size:10.5px; letter-spacing:.1em; padding-top:2px; flex-shrink:0}
+  .flag .k{flex-shrink:0}
 
-  .verify{display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:15px; padding-top:14px; border-top:1px solid var(--border-soft); font-size:12.5px; align-items:center}
-  .verify > span.vlabel{color:var(--faint); text-transform:uppercase; letter-spacing:.1em; font-size:10.5px; font-weight:700}
-  .verify a{color:var(--info); text-decoration:none}
-  .verify a:hover{text-decoration:underline}
-  .verify-status{font-size:11px; font-weight:700; letter-spacing:.03em; padding:3px 9px; border-radius:99px; border:1px solid var(--border-soft); color:var(--faint); background:var(--surface-2); white-space:nowrap}
-  .verify-status.checking{color:var(--info)}
-  .verify-status.live{color:var(--good); border-color:color-mix(in srgb,var(--good) 40%,var(--border))}
-  .verify-status.curated{color:var(--faint)}
-  .ind{font-style:normal; color:var(--faint); cursor:help; font-size:11px}
-  .cardbtns{display:flex; gap:8px; margin-left:auto; flex-wrap:wrap}
-  .icobtn{font:inherit; font-size:12.5px; cursor:pointer; border:1px solid var(--border); background:var(--surface-2); color:var(--muted); border-radius:8px; padding:6px 11px}
-  .icobtn:hover{color:var(--text); border-color:var(--accent)}
-  .icobtn.on{color:var(--accent); border-color:var(--accent)}
+  .ractions{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-top:2px}
+  .rbtn{font-size:12.5px; font-weight:650; padding:7px 11px; border-radius:9px; border:1px solid var(--line); background:var(--card2); color:var(--text); cursor:pointer}
+  .rbtn:active{transform:scale(.96)}
+  .rbtn.wl.on{color:var(--accent); border-color:var(--accent)}
+  .rbtn.skip{color:var(--muted)}
+  .vstat{font-size:10.5px; font-weight:700; letter-spacing:.02em; padding:3px 8px; border-radius:99px; border:1px solid var(--line); color:var(--faint); background:var(--card2); white-space:nowrap; margin-left:auto}
+  .vstat.checking{color:var(--accent)}
+  .vstat.live{color:var(--good); border-color:color-mix(in srgb,var(--good) 40%,var(--line))}
+  .vlink{font-size:11.5px; color:var(--faint); text-decoration:none}
 
-  .verdict{
-    margin-top:8px; background:linear-gradient(180deg,var(--surface-2),var(--surface));
-    border:1px dashed color-mix(in srgb,var(--accent) 45%, var(--border)); border-radius:14px; padding:16px 18px;
-  }
-  .verdict .lead{font-size:11px; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); font-weight:800}
-  .verdict h4{margin:6px 0 4px; font-size:19px}
-  .verdict p{margin:0; color:var(--muted); font-size:14px}
+  .verdict{margin-top:4px; padding:16px 17px; border-radius:var(--r); background:linear-gradient(135deg, color-mix(in srgb,var(--accent) 16%,var(--card)), var(--card)); border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line))}
+  .verdict .vk{font-size:11px; text-transform:uppercase; letter-spacing:.16em; color:var(--accent); font-weight:800}
+  .verdict strong{display:block; font-size:20px; margin:4px 0 5px; letter-spacing:-.01em}
+  .verdict p{margin:0; color:var(--muted); font-size:13.5px}
 
-  .empty{text-align:center; color:var(--muted); padding:40px 20px; font-size:15px}
+  .empty{padding:34px 20px; text-align:center; color:var(--muted); font-size:14.5px; background:var(--card); border:1px dashed var(--line); border-radius:var(--r)}
 
-  /* Modal / lists */
-  .overlay{position:fixed; inset:0; background:rgba(6,7,11,.66); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; padding:20px; z-index:50}
+  /* ---- dock ---- */
+  .dock{position:fixed; left:0; right:0; bottom:0; z-index:30; display:none; padding:12px 15px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(transparent, color-mix(in srgb,var(--bg) 92%, transparent) 22%)}
+  .dock.show{display:block}
+  .dock .inner{max-width:640px; margin:0 auto; width:100%; display:flex; gap:9px}
+  .dbtn{height:50px; border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:8px}
+  .dbtn:active{transform:scale(.98)}
+  .dbtn.primary{flex:1; color:var(--accent-ink); border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 12px 26px -12px color-mix(in srgb,var(--accent) 75%,transparent)}
+  .dbtn.ghost{padding:0 16px; background:color-mix(in srgb,var(--card) 80%,transparent); backdrop-filter:blur(10px); color:var(--text)}
+
+  /* ---- modals ---- */
+  .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:flex-end; justify-content:center; background:rgba(4,5,9,.6); backdrop-filter:blur(3px)}
+  @media(min-width:560px){ .overlay{align-items:center} }
   .overlay.show{display:flex}
-  .modal{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); width:100%; max-width:520px; max-height:86vh; overflow:auto; padding:22px}
-  .modal h3{margin:0 0 4px; font-size:20px}
-  .modal .mtitle{color:var(--muted); font-size:13px; margin-bottom:16px}
-  .rate{display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap}
+  .sheet{width:100%; max-width:560px; max-height:88dvh; overflow:auto; background:var(--card); border:1px solid var(--line);
+    border-radius:22px 22px 0 0; padding:20px 18px calc(24px + env(safe-area-inset-bottom)); box-shadow:var(--shadow)}
+  @media(min-width:560px){ .sheet{border-radius:22px} }
+  .sheet .grab{width:38px; height:4px; border-radius:99px; background:var(--line); margin:0 auto 14px}
+  .sheet h3{margin:0 0 3px; font-size:19px}
+  .sheet .msub{color:var(--muted); font-size:13px; margin-bottom:16px}
+  .rate{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px}
   .rate .who{flex:1 1 140px}
-  .rate label{font-size:12px; color:var(--muted); font-weight:600; display:flex; justify-content:space-between}
-  .rate label .v{font-family:var(--mono); color:var(--accent); font-weight:700}
-  .rate input[type=range]{width:100%; accent-color:var(--accent); margin-top:8px}
-  .modal textarea{width:100%; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; color:var(--text); font:inherit; font-size:13px; padding:10px; resize:vertical; min-height:56px}
-  .modal .mrow{display:flex; gap:9px; margin-top:16px; flex-wrap:wrap}
-  .close{position:sticky; top:0; float:right; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; line-height:1}
-
-  .listcol h4{margin:18px 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.12em; color:var(--faint); display:flex; gap:8px; align-items:center}
-  .listcol h4 .c{font-family:var(--mono); color:var(--muted); background:var(--surface-2); border-radius:99px; padding:1px 8px; font-size:11px}
+  .rate label{display:flex; justify-content:space-between; font-size:13px; font-weight:650; color:var(--muted)}
+  .rate label .v{font-family:var(--mono); color:var(--accent); font-weight:800; font-size:15px}
+  .rate input[type=range]{width:100%; accent-color:var(--accent); margin-top:10px; height:26px}
+  .sheet textarea{width:100%; background:var(--card2); border:1px solid var(--line); border-radius:12px; color:var(--text); font:inherit; font-size:14px; padding:11px; resize:vertical; min-height:56px}
+  .mrow{display:flex; gap:9px; margin-top:16px}
+  .mrow .btn{flex:1; height:48px; border-radius:13px; font-size:15px; font-weight:700; cursor:pointer; border:1px solid var(--line); background:var(--card2); color:var(--text)}
+  .mrow .btn.primary{color:var(--accent-ink); border-color:transparent; background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .listcol h4{margin:16px 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.12em; color:var(--faint); display:flex; align-items:center; gap:8px}
+  .listcol h4 .c{font-family:var(--mono); background:var(--card2); border-radius:99px; padding:1px 8px; font-size:11px; color:var(--muted)}
   .listcol ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px}
-  .listcol li{font-size:12.5px; background:var(--surface-2); border:1px solid var(--border-soft); border-radius:8px; padding:5px 10px; color:var(--muted); display:flex; align-items:center; gap:8px}
-  .listcol li .x{cursor:pointer; color:var(--faint); font-weight:700}
-  .listcol li .x:hover{color:var(--bad)}
-  .listcol li .sc{font-family:var(--mono); color:var(--accent); font-size:11px}
+  .listcol li{font-size:12.5px; background:var(--card2); border:1px solid var(--line); border-radius:8px; padding:5px 10px; color:var(--muted); display:flex; gap:8px; align-items:center}
+  .listcol li .sc{font-family:var(--mono); color:var(--accent)}
+  .listcol li .x{cursor:pointer; color:var(--faint); font-weight:800}
 
-  @media (max-width:560px){
-    .cardbtns{margin-left:0; width:100%}
-    .verify{flex-direction:column; align-items:flex-start}
-  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  a{color:var(--accent)}
 </style>
 
-<div class="wrap">
-  <header class="deck">
-    <div class="brand">
-      <h1>Tonight's <span class="glow">Pick</span></h1>
-      <p>A screening-room concierge for <b>Sulay &amp; Tanya</b> — set the mood, get three verified options and one clear winner.</p>
+<div class="app">
+  <header>
+    <div class="logo">
+      <span class="dot">🍿</span>
+      <b>Tonight's Pick <span>· S&amp;T</span></b>
     </div>
-    <button class="theme-btn" id="themeBtn" type="button">◐ Theme</button>
+    <div class="hbtns">
+      <button class="icon" id="openLists" type="button" aria-label="Your lists">☰</button>
+      <button class="icon" id="themeBtn" type="button" aria-label="Toggle theme">◐</button>
+    </div>
   </header>
 
-  <section class="panel" aria-label="Choose your mood">
-    <div class="row">
-      <div class="field">
+  <div class="hero">
+    <h1>What are we <em>watching</em> tonight?</h1>
+    <p>Tap a mood — you'll get three picks and one clear winner in a second.</p>
+  </div>
+
+  <div class="section-label">Pick a mood</div>
+  <div class="moods" id="moods">
+    <button class="mood" data-mood="surprise" type="button" aria-pressed="false"><span class="emo">🎲</span><span class="lbl">Surprise us</span></button>
+    <button class="mood" data-mood="funny" type="button" aria-pressed="false"><span class="emo">😂</span><span class="lbl">Funny &amp; easy</span></button>
+    <button class="mood" data-mood="thriller" type="button" aria-pressed="false"><span class="emo">🕵️</span><span class="lbl">Thriller / spy</span></button>
+    <button class="mood" data-mood="mystery" type="button" aria-pressed="false"><span class="emo">🔍</span><span class="lbl">Mystery</span></button>
+    <button class="mood" data-mood="action" type="button" aria-pressed="false"><span class="emo">💥</span><span class="lbl">Action</span></button>
+    <button class="mood" data-mood="warm" type="button" aria-pressed="false"><span class="emo">☕</span><span class="lbl">Feel-good</span></button>
+    <button class="mood" data-mood="glossy" type="button" aria-pressed="false"><span class="emo">✨</span><span class="lbl">Escapism</span></button>
+    <button class="mood" data-mood="crime" type="button" aria-pressed="false"><span class="emo">🎭</span><span class="lbl">Crime</span></button>
+  </div>
+
+  <div class="quick">
+    <button class="qbtn" id="roulette" type="button">🎲 Roulette</button>
+    <button class="qbtn" id="emergency" type="button">🚨 Emergency pick</button>
+  </div>
+
+  <button class="refine-toggle" id="refineToggle" type="button" aria-expanded="false">
+    Refine <span style="color:var(--faint)">— format, length, energy, language</span> <span class="chev">▾</span>
+  </button>
+  <div class="refine" id="refine">
+    <div class="refine-inner">
+      <div class="fgroup">
         <label>Format</label>
-        <div class="chips" data-group="format" role="group">
+        <div class="chips" data-group="format">
           <button class="chip" data-val="either" aria-pressed="true" type="button">Either</button>
           <button class="chip" data-val="movie" aria-pressed="false" type="button">🎬 Movie</button>
           <button class="chip" data-val="series" aria-pressed="false" type="button">📺 Show</button>
         </div>
       </div>
-      <div class="field">
+      <div class="fgroup">
+        <label>Length</label>
+        <div class="chips" data-group="commitment">
+          <button class="chip" data-val="any" aria-pressed="true" type="button">Any</button>
+          <button class="chip" data-val="short" aria-pressed="false" type="button">&lt;100-min film</button>
+          <button class="chip" data-val="movie" aria-pressed="false" type="button">Any film</button>
+          <button class="chip" data-val="ep25" aria-pressed="false" type="button">25–35-min eps</button>
+          <button class="chip" data-val="ep45" aria-pressed="false" type="button">45–60-min eps</button>
+          <button class="chip" data-val="limited" aria-pressed="false" type="button">Limited series</button>
+          <button class="chip" data-val="binge" aria-pressed="false" type="button">Multi-season</button>
+        </div>
+      </div>
+      <div class="fgroup">
+        <label>Energy</label>
+        <div class="chips" data-group="energy">
+          <button class="chip" data-val="any" aria-pressed="true" type="button">Any</button>
+          <button class="chip" data-val="background" aria-pressed="false" type="button">Background</button>
+          <button class="chip" data-val="easy" aria-pressed="false" type="button">Engaging but easy</button>
+          <button class="chip" data-val="gripping" aria-pressed="false" type="button">Fully gripping</button>
+        </div>
+      </div>
+      <div class="fgroup">
         <label>Language</label>
-        <div class="chips" data-group="language" role="group">
+        <div class="chips" data-group="language">
           <button class="chip" data-val="any" aria-pressed="true" type="button">Any + subs</button>
           <button class="chip" data-val="en" aria-pressed="false" type="button">English</button>
           <button class="chip" data-val="hi" aria-pressed="false" type="button">Hindi</button>
         </div>
       </div>
     </div>
-
-    <div class="row">
-      <div class="field" style="flex-basis:100%">
-        <label>Mood</label>
-        <div class="chips" data-group="mood" role="group">
-          <button class="chip" data-val="surprise" aria-pressed="true" type="button">Surprise us</button>
-          <button class="chip" data-val="funny" aria-pressed="false" type="button">Funny &amp; effortless</button>
-          <button class="chip" data-val="thriller" aria-pressed="false" type="button">Thriller / espionage</button>
-          <button class="chip" data-val="mystery" aria-pressed="false" type="button">Mystery / detective</button>
-          <button class="chip" data-val="action" aria-pressed="false" type="button">Action</button>
-          <button class="chip" data-val="warm" aria-pressed="false" type="button">Warm &amp; feel-good</button>
-          <button class="chip" data-val="glossy" aria-pressed="false" type="button">Glossy escapism</button>
-          <button class="chip" data-val="crime" aria-pressed="false" type="button">Crime drama</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label>Commitment</label>
-        <div class="chips" data-group="commitment" role="group">
-          <button class="chip" data-val="any" aria-pressed="true" type="button">No preference</button>
-          <button class="chip" data-val="short" aria-pressed="false" type="button">&lt;100-min movie</button>
-          <button class="chip" data-val="movie" aria-pressed="false" type="button">Any movie</button>
-          <button class="chip" data-val="ep25" aria-pressed="false" type="button">25–35-min eps</button>
-          <button class="chip" data-val="ep45" aria-pressed="false" type="button">45–60-min eps</button>
-          <button class="chip" data-val="limited" aria-pressed="false" type="button">Limited series</button>
-          <button class="chip" data-val="binge" aria-pressed="false" type="button">Multi-season binge</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>Energy</label>
-        <div class="chips" data-group="energy" role="group">
-          <button class="chip" data-val="any" aria-pressed="true" type="button">Any</button>
-          <button class="chip" data-val="background" aria-pressed="false" type="button">Background-friendly</button>
-          <button class="chip" data-val="easy" aria-pressed="false" type="button">Engaging but easy</button>
-          <button class="chip" data-val="gripping" aria-pressed="false" type="button">Fully gripping</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn primary" id="recommend" type="button">Recommend</button>
-      <button class="btn" id="surprise" type="button">🎲 Roulette</button>
-      <button class="btn ghost" id="emergency" type="button">🚨 Emergency pick</button>
-      <button class="btn ghost" id="notfeeling" type="button" hidden>Not feeling it</button>
-      <span class="spacer"></span>
-      <button class="lists-link" id="openLists" type="button">Your lists</button>
-    </div>
-    <p class="note">Each pick <b>auto-verifies live</b> when deployed — the status pill turns green with the current <b>IMDb</b>, <b>RT critics</b> and <b>India platform</b> from TMDb + OMDb. The <b>≈ RT audience</b> figure stays indicative (no free live source exists for it). Tap <b>Verify</b> to double-check on JustWatch / IMDb / RT. Horror and anything on your watched lists are filtered out automatically.</p>
-  </section>
+  </div>
 
   <section class="results" id="results" aria-live="polite"></section>
 </div>
 
-<!-- Watched modal -->
+<div class="dock" id="dock">
+  <div class="inner">
+    <button class="dbtn ghost" id="toTop" type="button">↑ Mood</button>
+    <button class="dbtn primary" id="reshuffle" type="button">🔄 Not feeling it — reshuffle</button>
+  </div>
+</div>
+
+<!-- watched sheet -->
 <div class="overlay" id="watchedOverlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="wm-title">
-    <button class="close" id="wmClose" type="button" aria-label="Close">×</button>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="wm-title">
+    <div class="grab"></div>
     <h3 id="wm-title">We watched it</h3>
-    <div class="mtitle" id="wmSub"></div>
+    <div class="msub" id="wmSub"></div>
     <div class="rate">
-      <div class="who">
-        <label>Sulay <span class="v" id="sVal">7</span></label>
-        <input type="range" id="sRate" min="0" max="10" step="1" value="7">
-      </div>
-      <div class="who">
-        <label>Tanya <span class="v" id="tVal">7</span></label>
-        <input type="range" id="tRate" min="0" max="10" step="1" value="7">
-      </div>
+      <div class="who"><label>Sulay <span class="v" id="sVal">7</span></label><input type="range" id="sRate" min="0" max="10" step="1" value="7"></div>
+      <div class="who"><label>Tanya <span class="v" id="tVal">7</span></label><input type="range" id="tRate" min="0" max="10" step="1" value="7"></div>
     </div>
     <textarea id="wmReason" placeholder="One line — what worked or didn't (optional)"></textarea>
     <div class="mrow">
-      <button class="btn primary" id="wmLiked" type="button">Save to Liked</button>
-      <button class="btn" id="wmDisliked" type="button">Save to Disliked</button>
+      <button class="btn primary" id="wmLiked" type="button">👍 Liked</button>
+      <button class="btn" id="wmDisliked" type="button">👎 Disliked</button>
     </div>
   </div>
 </div>
 
-<!-- Lists modal -->
+<!-- lists sheet -->
 <div class="overlay" id="listsOverlay">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="lm-title">
-    <button class="close" id="lmClose" type="button" aria-label="Close">×</button>
-    <h3 id="lm-title">Your evolving lists</h3>
-    <div class="mtitle">Titles you mark move here and stop being recommended. Stored on this device.</div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lm-title">
+    <div class="grab"></div>
+    <h3 id="lm-title">Your lists</h3>
+    <div class="msub">Marked titles move here and stop being recommended. Saved on this device.</div>
     <div class="listcol" id="listBody"></div>
   </div>
 </div>
@@ -322,65 +324,57 @@
   "use strict";
   var LIKED_SEED = ["The Rookie","Brooklyn Nine-Nine","The Day of the Jackal","Friends","The Big Bang Theory","Pluribus","Ted Lasso","The Night Agent","Mr. & Mrs. Smith","The Night Manager","Fool's Gold","Sherlock","Beef","The Mentalist","Jack Ryan","One Piece","Glass Onion","Knives Out","The Lincoln Lawyer","Silicon Valley","Friends with Benefits","Dept. Q","Ticket to Paradise","Ocean's franchise","A Man on the Inside","Your Friends & Neighbours","Tehran","Will Trent","Mission: Impossible franchise","Dil Dhadakne Do","Zindagi Na Milegi Dobara","The Intern","The Diplomat","Dhurandhar","Uri","Paul Blart","Nobody Wants This","Crazy Rich Asians","Couples Retreat","Good Luck Chuck","Power","The Waterfront","The Residence","Running Point","Zero Day","Bandidos","Black Doves","Outer Banks","The Crown","Monk","Kim's Convenience","6 Underground","13 Hours","The Brothers Sun","Lupin","Just Go with It","Grown Ups"];
 
-  // Curated catalog — none of these appear on the watched-and-liked list.
   var C = [
-   {id:"slowhorses",title:"Slow Horses",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:96,rtA:87,pace:"Moderate",tone:"Balanced",epLen:48,seasons:4,eps:"4 seasons · 6 eps each",limited:false,moods:["thriller","crime"],baseTaste:0.95,novelty:0.6,warn:null,drawback:"First two episodes simmer before the hook lands.",why:"Because you loved <b>The Night Agent</b> and <b>The Day of the Jackal</b>, this scratches the same competent-operative-under-pressure itch — but with Gary Oldman running a team of disgraced spies, it's far funnier and more character-driven, closer to <b>Silicon Valley</b>'s misfit-office energy than to Jack Ryan's gloss."},
-   {id:"recruit",title:"The Recruit",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:7.1,rtC:70,rtA:79,pace:"Fast",tone:"Light",epLen:45,seasons:2,eps:"2 seasons · 8 + 6 eps",limited:false,moods:["thriller","funny","action"],baseTaste:0.94,novelty:0.55,warn:null,drawback:"Plotting is deliberately silly — don't expect Tehran's realism.",why:"This is almost engineered for you: <b>The Night Agent</b>'s in-over-his-head espionage married to <b>Brooklyn Nine-Nine</b>-style wisecracking. A rookie CIA lawyer keeps tripping into international crises, and every episode ends on a hook — a low-effort, high-fun binge."},
-   {id:"reacher",title:"Reacher",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.1,rtC:90,rtA:94,pace:"Fast",tone:"Balanced",epLen:50,seasons:3,eps:"3 seasons · 8 eps each",limited:false,moods:["action","thriller","mystery"],baseTaste:0.9,novelty:0.5,warn:"Bursts of hard, bone-crunching violence.",drawback:"The whodunit is secondary to the fistfights.",why:"For the <b>Jack Ryan</b> / <b>Mission: Impossible</b> side of your taste: a hulking ex-MP walks into a town, finds a conspiracy, and dismantles it. It pairs the case-a-season structure of <b>The Mentalist</b> with genuinely satisfying action set-pieces."},
-   {id:"familyman",title:"The Family Man",format:"series",langs:["hi","en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.7,rtC:null,rtA:90,pace:"Fast",tone:"Balanced",epLen:45,seasons:2,eps:"2 seasons · 9–10 eps",limited:false,moods:["thriller","funny","action"],baseTaste:0.97,novelty:0.4,warn:null,drawback:"Some plotlines lean on real-world politics.",why:"The single best bridge between your <b>Uri</b> / <b>Tehran</b> espionage love and your comedy side. Manoj Bajpayee plays a middle-class Mumbai dad who's secretly a top intelligence officer — the spycraft is tense and grounded, but the domestic bickering is as warm and funny as <b>Kim's Convenience</b>."},
-   {id:"onlymurders",title:"Only Murders in the Building",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:8.1,rtC:98,rtA:85,pace:"Moderate",tone:"Light",epLen:32,seasons:4,eps:"4 seasons · 10 eps each",limited:false,moods:["mystery","funny","warm"],baseTaste:0.96,novelty:0.5,warn:null,drawback:"Cozy pace — it's charm-first, not edge-of-seat.",why:"A perfect overlap of two of your favourites: the playful whodunit machinery of <b>Knives Out</b> / <b>The Residence</b> and the warm ensemble comedy of <b>Brooklyn Nine-Nine</b>. Three true-crime-obsessed neighbours turn amateur detective — witty, twisty and completely spoiler-safe to recommend."},
-   {id:"gentlemen",title:"The Gentlemen",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.1,rtC:91,rtA:90,pace:"Fast",tone:"Balanced",epLen:50,seasons:1,eps:"1 season · 8 eps",limited:false,moods:["crime","funny","action"],baseTaste:0.93,novelty:0.6,warn:"Comic but real gangland violence.",drawback:"Guy Ritchie's slang comes fast — subtitles help.",why:"Made for your <b>Lupin</b> + <b>Ocean's</b> streak: a suave aristocrat inherits an estate riddled with a weed empire and has to out-charm every criminal in it. Stylish, quick-witted and full of charismatic antiheroes like <b>Power</b>, but with a lighter, funnier touch."},
-   {id:"shrinking",title:"Shrinking",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:80,rtA:90,pace:"Moderate",tone:"Light",epLen:32,seasons:2,eps:"2 seasons · 10–12 eps",limited:false,moods:["warm","funny"],baseTaste:0.92,novelty:0.55,warn:null,drawback:"Opens on grief before the warmth kicks in.",why:"From the <b>Ted Lasso</b> creators and starring Harrison Ford at his funniest — the same big-hearted, quippy ensemble that made <b>A Man on the Inside</b> and <b>Nobody Wants This</b> work for you. Feel-good without being saccharine."},
-   {id:"badsisters",title:"Bad Sisters",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:95,rtA:88,pace:"Moderate",tone:"Balanced",epLen:50,seasons:2,eps:"2 seasons · 8–10 eps",limited:false,moods:["mystery","crime","funny"],baseTaste:0.85,novelty:0.65,warn:null,drawback:"A darker comic streak than Only Murders.",why:"A whodunit told backwards — you know someone dies, the fun is who and how. It blends the sly plotting of <b>Knives Out</b> with the sisters' banter, hitting the same clever-mystery-with-heart note as <b>The Residence</b>, set gorgeously in Ireland."},
-   {id:"presumed",title:"Presumed Innocent",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:7.8,rtC:80,rtA:71,pace:"Moderate",tone:"Balanced",epLen:50,seasons:1,eps:"1 season · 8 eps",limited:true,moods:["mystery","thriller"],baseTaste:0.84,novelty:0.6,warn:"Adult themes; a murder case with some sexual content.",drawback:"A slow-burn legal drama, not an action piece.",why:"Straight down the middle of your <b>Lincoln Lawyer</b> / <b>Dept. Q</b> lane: a prosecutor becomes the prime suspect in a colleague's murder. Gyllenhaal keeps it gripping and every episode tightens the screw — a proper twisty limited series with a real ending."},
-   {id:"hijack",title:"Hijack",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:7.4,rtC:80,rtA:72,pace:"Fast",tone:"Balanced",epLen:45,seasons:1,eps:"1 season · 7 eps",limited:true,moods:["thriller","action"],baseTaste:0.86,novelty:0.6,warn:null,drawback:"The real-time conceit stretches believability late on.",why:"Idris Elba negotiating his way through a hijacked flight in near real-time — the sustained pressure of <b>Zero Day</b> and <b>The Night Agent</b> compressed into seven tight, hook-ending episodes. Ideal when you want gripping but finite."},
-   {id:"bodyguard",title:"Bodyguard",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.1,rtC:84,rtA:89,pace:"Fast",tone:"Balanced",epLen:58,seasons:1,eps:"1 season · 6 eps",limited:true,moods:["thriller","action"],baseTaste:0.88,novelty:0.55,warn:null,drawback:"The finale divides people — some find it a touch long.",why:"If <b>The Night Manager</b> and <b>Black Doves</b> are your comfort zone, this is essential: a war-veteran protection officer assigned to a minister he may not agree with. The first episode is one of TV's great white-knuckle openers and it never lets go across six."},
-   {id:"specialops",title:"Special Ops",format:"series",langs:["hi","en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:8.6,rtC:null,rtA:null,pace:"Fast",tone:"Balanced",epLen:45,seasons:2,eps:"2 seasons + 1.5",limited:false,moods:["thriller","action"],baseTaste:0.9,novelty:0.6,warn:null,drawback:"Not rated on Rotten Tomatoes.",why:"Neeraj Pandey's Indian espionage saga is the homegrown <b>Tehran</b> you're missing — a dogged R&AW officer chasing a mastermind across years and borders. The same procedural patience as <b>The Mentalist</b> welded to <b>Uri</b>-grade tension, in Hindi."},
-   {id:"farzi",title:"Farzi",format:"series",langs:["hi","en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.2,rtC:null,rtA:null,pace:"Fast",tone:"Balanced",epLen:50,seasons:1,eps:"1 season · 8 eps",limited:false,moods:["crime","thriller"],baseTaste:0.88,novelty:0.6,warn:null,drawback:"Ends on a clear sequel hook (S2 not yet out).",why:"From <b>The Family Man</b>'s creators: a struggling artist turns master counterfeiter while a hot-headed officer hunts him. It's the charismatic-antihero pull of <b>Power</b> and <b>Lupin</b>'s con-artist flair, with Shahid Kapoor and Vijay Sethupathi both magnetic."},
-   {id:"fallout",title:"Fallout",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.3,rtC:93,rtA:89,pace:"Fast",tone:"Balanced",epLen:55,seasons:1,eps:"1 season · 8 eps",limited:false,moods:["action","mystery"],baseTaste:0.8,novelty:0.7,warn:"Cartoonish but frequent gore.",drawback:"Post-apocalyptic setting — not your usual glossy world.",why:"An unexpected one that fits: it has the world-building sweep you enjoyed in <b>One Piece</b> and a wry, quippy tone rather than bleakness. A vault-dweller's fish-out-of-water quest keeps it funny and propulsive despite the wasteland."},
-   {id:"emily",title:"Emily in Paris",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.9,rtC:62,rtA:47,pace:"Moderate",tone:"Light",epLen:30,seasons:4,eps:"4 seasons · 10 eps each",limited:false,moods:["glossy","warm","funny"],baseTaste:0.82,novelty:0.35,warn:null,drawback:"Critics find it fluffy — that's rather the point here.",why:"Pure <b>Ticket to Paradise</b> / <b>Crazy Rich Asians</b> escapism: beautiful people, beautiful cities, low stakes and easy romance. It's the definition of background-friendly, glossy travel comfort — exactly the <b>Dil Dhadakne Do</b> holiday feeling in 30-minute doses."},
-   {id:"rednotice",title:"Red Notice",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.3,rtC:36,rtA:92,pace:"Fast",tone:"Light",runtime:118,eps:"—",limited:false,moods:["action","glossy","funny"],baseTaste:0.86,novelty:0.4,warn:null,drawback:"Critics dismissed it; audiences had a blast — trust the latter here.",why:"A textbook case where the audience score matters more than the critics for you: a globe-trotting art-heist caper with Reynolds, Johnson and Gadot trading quips. It's <b>6 Underground</b>'s slick action plus <b>Ocean's</b> banter — glossy, weightless fun."},
-   {id:"lostcity",title:"The Lost City",format:"movie",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:6.1,rtC:78,rtA:84,pace:"Fast",tone:"Light",runtime:112,eps:"—",limited:false,moods:["funny","glossy","action"],baseTaste:0.85,novelty:0.55,warn:null,drawback:"Featherweight — enjoy it, don't analyse it.",why:"Almost a spiritual sequel to <b>Fool's Gold</b>: a romance novelist and her himbo cover model get dragged into a real jungle treasure hunt. Sandra Bullock and Channing Tatum have the easy chemistry you liked in <b>Ticket to Paradise</b> and <b>Just Go with It</b>."},
-   {id:"grayman",title:"The Gray Man",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.5,rtC:46,rtA:87,pace:"Fast",tone:"Balanced",runtime:129,eps:"—",limited:false,moods:["action","thriller"],baseTaste:0.83,novelty:0.4,warn:"Heavy, stylised action violence.",drawback:"Plot is thin connective tissue between set-pieces.",why:"From the <b>Mission: Impossible</b>-adjacent Russo brothers: a burned CIA asset hunted across Europe by Ryan Gosling vs Chris Evans. It's the pure globe-hopping action rush of <b>6 Underground</b> — again a title audiences rated far above critics."},
-   {id:"murdermystery",title:"Murder Mystery",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.0,rtC:44,rtA:65,pace:"Fast",tone:"Light",runtime:97,eps:"—",limited:false,moods:["funny","mystery"],baseTaste:0.84,novelty:0.35,warn:null,drawback:"Broad, undemanding comedy — you likely know the Sandler formula.",why:"Two of your loves in one under-100-minute package: your <b>Adam Sandler</b> comfort comedy and a <b>Knives Out</b>-lite whodunit. Sandler and Jennifer Aniston (your <b>Just Go with It</b> pairing) bumble through a yacht murder. There's a sequel waiting if you enjoy it."},
-   {id:"kaleidoscope",title:"Kaleidoscope",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.7,rtC:60,rtA:54,pace:"Moderate",tone:"Balanced",epLen:48,seasons:1,eps:"1 season · 8 eps",limited:true,moods:["crime","thriller"],baseTaste:0.8,novelty:0.7,warn:null,drawback:"The non-linear gimmick matters more than the finale.",why:"A heist limited series you can watch in almost any order — a novelty that suits your <b>Ocean's</b> and <b>Lupin</b> taste for elaborate cons. Giancarlo Esposito leads a crew cracking an impossible vault; low commitment at eight episodes with a real conclusion."},
-   {id:"fubar",title:"FUBAR",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.0,rtC:52,rtA:70,pace:"Fast",tone:"Light",epLen:50,seasons:2,eps:"2 seasons · 8 eps each",limited:false,moods:["action","funny"],baseTaste:0.79,novelty:0.55,warn:null,drawback:"Broad and a bit uneven — a hangout action-comedy, not prestige.",why:"Basically <b>Mr. & Mrs. Smith</b> as a father-daughter buddy comedy: Schwarzenegger and his daughter discover they're both undercover CIA. It leans into easy laughs like <b>Grown Ups</b> while delivering popcorn spy action — ideal engaging-but-easy background viewing."},
-   {id:"schitts",title:"Schitt's Creek",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.5,rtC:93,rtA:93,pace:"Moderate",tone:"Light",epLen:22,seasons:6,eps:"6 seasons · 13–14 eps",limited:false,moods:["funny","warm"],baseTaste:0.87,novelty:0.4,warn:null,drawback:"The first few episodes are chillier before the heart arrives.",why:"A formerly-rich family stranded in a small town — the fish-out-of-water warmth of <b>Kim's Convenience</b> (same Canadian comedy world, shared cast energy) with the ensemble affection of <b>Friends</b> and <b>Ted Lasso</b>. The definitive warm binge once it clicks."},
-   {id:"jury",title:"Jury Duty",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:7.9,rtC:96,rtA:88,pace:"Moderate",tone:"Light",epLen:30,seasons:1,eps:"1 season · 8 eps",limited:true,moods:["funny","warm"],baseTaste:0.83,novelty:0.75,warn:null,drawback:"Improvised mockumentary — a very different texture to scripted sitcoms.",why:"A hidden overlooked gem: one real man believes he's on a genuine jury while everyone around him is an actor. It has the mockumentary sweetness of <b>Brooklyn Nine-Nine</b>'s warmth and the underdog charm of <b>Ted Lasso</b>, and finishes in eight easy episodes."},
-   {id:"oldman",title:"The Old Man",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:7.4,rtC:89,rtA:76,pace:"Moderate",tone:"Balanced",epLen:52,seasons:2,eps:"2 seasons · 7–8 eps",limited:false,moods:["thriller","action"],baseTaste:0.82,novelty:0.6,warn:"Occasional intense violence.",drawback:"More brooding and slow-burn than The Night Agent.",why:"For the grown-up end of your <b>Jack Ryan</b> / <b>Day of the Jackal</b> spectrum: Jeff Bridges as a retired CIA operative whose past comes hunting. The action is brutal and precise, and the cat-and-mouse with John Lithgow gives it real <b>Night Manager</b> tension."},
-   {id:"whitelotus",title:"The White Lotus",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:7.9,rtC:91,rtA:78,pace:"Moderate",tone:"Balanced",epLen:58,seasons:3,eps:"3 seasons · 6–8 eps",limited:false,moods:["glossy","mystery"],baseTaste:0.78,novelty:0.6,warn:"Frank sex, nudity and a death each season (satirical, not horror).",drawback:"A slow, ironic burn — closer to social satire than a straight thriller.",why:"The luxe resort settings deliver the <b>Crazy Rich Asians</b> / <b>Dil Dhadakne Do</b> travel gloss you love, wrapped around a gentle who-died mystery like <b>The Residence</b>. Sharper and more adult than your usual comfort picks — a stretch, but a stylish one."},
-   {id:"gunsgulaabs",title:"Guns & Gulaabs",format:"series",langs:["hi","en"],platform:"Netflix",prio:1,access:"Included",imdb:8.0,rtC:null,rtA:null,pace:"Moderate",tone:"Balanced",epLen:50,seasons:1,eps:"1 season · 7 eps",limited:false,moods:["crime","funny"],baseTaste:0.83,novelty:0.7,warn:"Some cartoonish violence.",drawback:"Not rated on Rotten Tomatoes; ends open for a season 2.",why:"A quirky '90s-set crime comedy from the <b>Stree</b> team — but tonally it's the offbeat charm of <b>Guns & humour</b>, closer to <b>Lupin</b>'s playfulness and <b>The Brothers Sun</b>'s crime-family warmth than to grim gangland drama. A fresh Hindi pick you've almost certainly missed."},
-   {id:"citadel",title:"Citadel",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:5.4,rtC:52,rtA:53,pace:"Fast",tone:"Light",epLen:45,seasons:1,eps:"1 season · 6 eps",limited:false,moods:["action","thriller"],baseTaste:0.72,novelty:0.45,warn:null,drawback:"The weakest-reviewed pick here — pure spectacle over story.",why:"Included only as a glossy, brain-off option: amnesiac super-spies, exotic locations and <b>6 Underground</b>-scale action from the Russo stable. It's the least substantial title on your slate — reach for it when you want <b>Mr. & Mrs. Smith</b> gloss and nothing more."}
+   {id:"slowhorses",title:"Slow Horses",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:96,rtA:87,pace:"Moderate",tone:"Balanced",epLen:48,seasons:4,eps:"4 seasons",limited:false,moods:["thriller","crime"],baseTaste:0.95,novelty:0.6,warn:null,drawback:"First two episodes simmer before the hook lands.",why:"Because you loved <b>The Night Agent</b> and <b>The Day of the Jackal</b>, this scratches the same competent-operative-under-pressure itch — but with Gary Oldman running a team of disgraced spies, it's far funnier and more character-driven, closer to <b>Silicon Valley</b>'s misfit-office energy than to Jack Ryan's gloss."},
+   {id:"recruit",title:"The Recruit",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:7.1,rtC:70,rtA:79,pace:"Fast",tone:"Light",epLen:45,seasons:2,eps:"2 seasons",limited:false,moods:["thriller","funny","action"],baseTaste:0.94,novelty:0.55,warn:null,drawback:"Plotting is deliberately silly — don't expect Tehran's realism.",why:"This is almost engineered for you: <b>The Night Agent</b>'s in-over-his-head espionage married to <b>Brooklyn Nine-Nine</b>-style wisecracking. A rookie CIA lawyer keeps tripping into international crises, and every episode ends on a hook — a low-effort, high-fun binge."},
+   {id:"reacher",title:"Reacher",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.1,rtC:90,rtA:94,pace:"Fast",tone:"Balanced",epLen:50,seasons:3,eps:"3 seasons",limited:false,moods:["action","thriller","mystery"],baseTaste:0.9,novelty:0.5,warn:"Bursts of hard, bone-crunching violence.",drawback:"The whodunit is secondary to the fistfights.",why:"For the <b>Jack Ryan</b> / <b>Mission: Impossible</b> side of your taste: a hulking ex-MP walks into a town, finds a conspiracy, and dismantles it. It pairs the case-a-season structure of <b>The Mentalist</b> with genuinely satisfying action set-pieces."},
+   {id:"familyman",title:"The Family Man",format:"series",langs:["hi","en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.7,rtC:null,rtA:90,pace:"Fast",tone:"Balanced",epLen:45,seasons:2,eps:"2 seasons",limited:false,moods:["thriller","funny","action"],baseTaste:0.97,novelty:0.4,warn:null,drawback:"Some plotlines lean on real-world politics.",why:"The single best bridge between your <b>Uri</b> / <b>Tehran</b> espionage love and your comedy side. Manoj Bajpayee plays a middle-class Mumbai dad who's secretly a top intelligence officer — the spycraft is tense and grounded, but the domestic bickering is as warm and funny as <b>Kim's Convenience</b>."},
+   {id:"onlymurders",title:"Only Murders in the Building",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:8.1,rtC:98,rtA:85,pace:"Moderate",tone:"Light",epLen:32,seasons:4,eps:"4 seasons",limited:false,moods:["mystery","funny","warm"],baseTaste:0.96,novelty:0.5,warn:null,drawback:"Cozy pace — it's charm-first, not edge-of-seat.",why:"A perfect overlap of two of your favourites: the playful whodunit machinery of <b>Knives Out</b> / <b>The Residence</b> and the warm ensemble comedy of <b>Brooklyn Nine-Nine</b>. Three true-crime-obsessed neighbours turn amateur detective — witty, twisty and completely spoiler-safe."},
+   {id:"gentlemen",title:"The Gentlemen",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.1,rtC:91,rtA:90,pace:"Fast",tone:"Balanced",epLen:50,seasons:1,eps:"8 eps",limited:false,moods:["crime","funny","action"],baseTaste:0.93,novelty:0.6,warn:"Comic but real gangland violence.",drawback:"Guy Ritchie's slang comes fast — subtitles help.",why:"Made for your <b>Lupin</b> + <b>Ocean's</b> streak: a suave aristocrat inherits an estate riddled with a weed empire and has to out-charm every criminal in it. Stylish, quick-witted and full of charismatic antiheroes like <b>Power</b>, but with a lighter touch."},
+   {id:"shrinking",title:"Shrinking",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:80,rtA:90,pace:"Moderate",tone:"Light",epLen:32,seasons:2,eps:"2 seasons",limited:false,moods:["warm","funny"],baseTaste:0.92,novelty:0.55,warn:null,drawback:"Opens on grief before the warmth kicks in.",why:"From the <b>Ted Lasso</b> creators and starring Harrison Ford at his funniest — the same big-hearted, quippy ensemble that made <b>A Man on the Inside</b> and <b>Nobody Wants This</b> work for you. Feel-good without being saccharine."},
+   {id:"badsisters",title:"Bad Sisters",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:8.2,rtC:95,rtA:88,pace:"Moderate",tone:"Balanced",epLen:50,seasons:2,eps:"2 seasons",limited:false,moods:["mystery","crime","funny"],baseTaste:0.85,novelty:0.65,warn:null,drawback:"A darker comic streak than Only Murders.",why:"A whodunit told backwards — you know someone dies, the fun is who and how. It blends the sly plotting of <b>Knives Out</b> with sisterly banter, hitting the same clever-mystery-with-heart note as <b>The Residence</b>, set gorgeously in Ireland."},
+   {id:"presumed",title:"Presumed Innocent",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:7.8,rtC:80,rtA:71,pace:"Moderate",tone:"Balanced",epLen:50,seasons:1,eps:"8 eps",limited:true,moods:["mystery","thriller"],baseTaste:0.84,novelty:0.6,warn:"Adult themes; a murder case with some sexual content.",drawback:"A slow-burn legal drama, not an action piece.",why:"Straight down the middle of your <b>Lincoln Lawyer</b> / <b>Dept. Q</b> lane: a prosecutor becomes the prime suspect in a colleague's murder. Gyllenhaal keeps it gripping and every episode tightens the screw — a proper twisty limited series with a real ending."},
+   {id:"hijack",title:"Hijack",format:"series",langs:["en"],platform:"Apple TV+",prio:0.72,access:"Included",imdb:7.4,rtC:80,rtA:72,pace:"Fast",tone:"Balanced",epLen:45,seasons:1,eps:"7 eps",limited:true,moods:["thriller","action"],baseTaste:0.86,novelty:0.6,warn:null,drawback:"The real-time conceit stretches believability late on.",why:"Idris Elba negotiating his way through a hijacked flight in near real-time — the sustained pressure of <b>Zero Day</b> and <b>The Night Agent</b> compressed into seven tight, hook-ending episodes. Ideal when you want gripping but finite."},
+   {id:"bodyguard",title:"Bodyguard",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.1,rtC:84,rtA:89,pace:"Fast",tone:"Balanced",epLen:58,seasons:1,eps:"6 eps",limited:true,moods:["thriller","action"],baseTaste:0.88,novelty:0.55,warn:null,drawback:"The finale divides people — some find it a touch long.",why:"If <b>The Night Manager</b> and <b>Black Doves</b> are your comfort zone, this is essential: a war-veteran protection officer assigned to a minister he may not agree with. The first episode is one of TV's great white-knuckle openers and it never lets go across six."},
+   {id:"specialops",title:"Special Ops",format:"series",langs:["hi","en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:8.6,rtC:null,rtA:null,pace:"Fast",tone:"Balanced",epLen:45,seasons:2,eps:"2 seasons",limited:false,moods:["thriller","action"],baseTaste:0.9,novelty:0.6,warn:null,drawback:"Not rated on Rotten Tomatoes.",why:"Neeraj Pandey's Indian espionage saga is the homegrown <b>Tehran</b> you're missing — a dogged R&AW officer chasing a mastermind across years and borders. The same procedural patience as <b>The Mentalist</b> welded to <b>Uri</b>-grade tension, in Hindi."},
+   {id:"farzi",title:"Farzi",format:"series",langs:["hi","en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.2,rtC:null,rtA:null,pace:"Fast",tone:"Balanced",epLen:50,seasons:1,eps:"8 eps",limited:false,moods:["crime","thriller"],baseTaste:0.88,novelty:0.6,warn:null,drawback:"Ends on a clear sequel hook (S2 not yet out).",why:"From <b>The Family Man</b>'s creators: a struggling artist turns master counterfeiter while a hot-headed officer hunts him. It's the charismatic-antihero pull of <b>Power</b> and <b>Lupin</b>'s con-artist flair, with Shahid Kapoor and Vijay Sethupathi both magnetic."},
+   {id:"fallout",title:"Fallout",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:8.3,rtC:93,rtA:89,pace:"Fast",tone:"Balanced",epLen:55,seasons:1,eps:"8 eps",limited:false,moods:["action","mystery"],baseTaste:0.8,novelty:0.7,warn:"Cartoonish but frequent gore.",drawback:"Post-apocalyptic setting — not your usual glossy world.",why:"An unexpected one that fits: it has the world-building sweep you enjoyed in <b>One Piece</b> and a wry, quippy tone rather than bleakness. A vault-dweller's fish-out-of-water quest keeps it funny and propulsive despite the wasteland."},
+   {id:"emily",title:"Emily in Paris",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.9,rtC:62,rtA:47,pace:"Moderate",tone:"Light",epLen:30,seasons:4,eps:"4 seasons",limited:false,moods:["glossy","warm","funny"],baseTaste:0.82,novelty:0.35,warn:null,drawback:"Critics find it fluffy — that's rather the point here.",why:"Pure <b>Ticket to Paradise</b> / <b>Crazy Rich Asians</b> escapism: beautiful people, beautiful cities, low stakes and easy romance. It's the definition of background-friendly, glossy travel comfort — the <b>Dil Dhadakne Do</b> holiday feeling in 30-minute doses."},
+   {id:"rednotice",title:"Red Notice",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.3,rtC:36,rtA:92,pace:"Fast",tone:"Light",runtime:118,eps:"1h 58m",limited:false,moods:["action","glossy","funny"],baseTaste:0.86,novelty:0.4,warn:null,drawback:"Critics dismissed it; audiences had a blast — trust the latter here.",why:"A textbook case where the audience score matters more than the critics for you: a globe-trotting art-heist caper with Reynolds, Johnson and Gadot trading quips. It's <b>6 Underground</b>'s slick action plus <b>Ocean's</b> banter — glossy, weightless fun."},
+   {id:"lostcity",title:"The Lost City",format:"movie",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:6.1,rtC:78,rtA:84,pace:"Fast",tone:"Light",runtime:112,eps:"1h 52m",limited:false,moods:["funny","glossy","action"],baseTaste:0.85,novelty:0.55,warn:null,drawback:"Featherweight — enjoy it, don't analyse it.",why:"Almost a spiritual sequel to <b>Fool's Gold</b>: a romance novelist and her himbo cover model get dragged into a real jungle treasure hunt. Sandra Bullock and Channing Tatum have the easy chemistry you liked in <b>Ticket to Paradise</b> and <b>Just Go with It</b>."},
+   {id:"grayman",title:"The Gray Man",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.5,rtC:46,rtA:87,pace:"Fast",tone:"Balanced",runtime:129,eps:"2h 9m",limited:false,moods:["action","thriller"],baseTaste:0.83,novelty:0.4,warn:"Heavy, stylised action violence.",drawback:"Plot is thin connective tissue between set-pieces.",why:"From the <b>Mission: Impossible</b>-adjacent Russo brothers: a burned CIA asset hunted across Europe by Ryan Gosling vs Chris Evans. It's the pure globe-hopping action rush of <b>6 Underground</b> — again a title audiences rated far above critics."},
+   {id:"murdermystery",title:"Murder Mystery",format:"movie",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.0,rtC:44,rtA:65,pace:"Fast",tone:"Light",runtime:97,eps:"1h 37m",limited:false,moods:["funny","mystery"],baseTaste:0.84,novelty:0.35,warn:null,drawback:"Broad, undemanding comedy — you likely know the Sandler formula.",why:"Two of your loves in one under-100-minute package: your <b>Adam Sandler</b> comfort comedy and a <b>Knives Out</b>-lite whodunit. Sandler and Jennifer Aniston (your <b>Just Go with It</b> pairing) bumble through a yacht murder. A sequel waits if you enjoy it."},
+   {id:"kaleidoscope",title:"Kaleidoscope",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.7,rtC:60,rtA:54,pace:"Moderate",tone:"Balanced",epLen:48,seasons:1,eps:"8 eps",limited:true,moods:["crime","thriller"],baseTaste:0.8,novelty:0.7,warn:null,drawback:"The non-linear gimmick matters more than the finale.",why:"A heist limited series you can watch in almost any order — a novelty that suits your <b>Ocean's</b> and <b>Lupin</b> taste for elaborate cons. Giancarlo Esposito leads a crew cracking an impossible vault; low commitment at eight episodes with a real conclusion."},
+   {id:"fubar",title:"FUBAR",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:6.0,rtC:52,rtA:70,pace:"Fast",tone:"Light",epLen:50,seasons:2,eps:"2 seasons",limited:false,moods:["action","funny"],baseTaste:0.79,novelty:0.55,warn:null,drawback:"Broad and a bit uneven — a hangout action-comedy, not prestige.",why:"Basically <b>Mr. & Mrs. Smith</b> as a father-daughter buddy comedy: Schwarzenegger and his daughter discover they're both undercover CIA. It leans into easy laughs like <b>Grown Ups</b> while delivering popcorn spy action — ideal engaging-but-easy viewing."},
+   {id:"schitts",title:"Schitt's Creek",format:"series",langs:["en"],platform:"Netflix",prio:1,access:"Included",imdb:8.5,rtC:93,rtA:93,pace:"Moderate",tone:"Light",epLen:22,seasons:6,eps:"6 seasons",limited:false,moods:["funny","warm"],baseTaste:0.87,novelty:0.4,warn:null,drawback:"The first few episodes are chillier before the heart arrives.",why:"A formerly-rich family stranded in a small town — the fish-out-of-water warmth of <b>Kim's Convenience</b> (same Canadian comedy world) with the ensemble affection of <b>Friends</b> and <b>Ted Lasso</b>. The definitive warm binge once it clicks."},
+   {id:"jury",title:"Jury Duty",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:7.9,rtC:96,rtA:88,pace:"Moderate",tone:"Light",epLen:30,seasons:1,eps:"8 eps",limited:true,moods:["funny","warm"],baseTaste:0.83,novelty:0.75,warn:null,drawback:"Improvised mockumentary — a different texture to scripted sitcoms.",why:"A hidden gem: one real man believes he's on a genuine jury while everyone around him is an actor. It has the mockumentary sweetness of <b>Brooklyn Nine-Nine</b>'s warmth and the underdog charm of <b>Ted Lasso</b>, and finishes in eight easy episodes."},
+   {id:"oldman",title:"The Old Man",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:7.4,rtC:89,rtA:76,pace:"Moderate",tone:"Balanced",epLen:52,seasons:2,eps:"2 seasons",limited:false,moods:["thriller","action"],baseTaste:0.82,novelty:0.6,warn:"Occasional intense violence.",drawback:"More brooding and slow-burn than The Night Agent.",why:"For the grown-up end of your <b>Jack Ryan</b> / <b>Day of the Jackal</b> spectrum: Jeff Bridges as a retired CIA operative whose past comes hunting. The action is brutal and precise, and the cat-and-mouse with John Lithgow gives it real <b>Night Manager</b> tension."},
+   {id:"whitelotus",title:"The White Lotus",format:"series",langs:["en"],platform:"JioHotstar",prio:0.82,access:"Included",imdb:7.9,rtC:91,rtA:78,pace:"Moderate",tone:"Balanced",epLen:58,seasons:3,eps:"3 seasons",limited:false,moods:["glossy","mystery"],baseTaste:0.78,novelty:0.6,warn:"Frank sex, nudity and a death each season (satirical, not horror).",drawback:"A slow, ironic burn — closer to social satire than a straight thriller.",why:"The luxe resort settings deliver the <b>Crazy Rich Asians</b> / <b>Dil Dhadakne Do</b> travel gloss you love, wrapped around a gentle who-died mystery like <b>The Residence</b>. Sharper and more adult than your usual comfort picks — a stretch, but a stylish one."},
+   {id:"gunsgulaabs",title:"Guns & Gulaabs",format:"series",langs:["hi","en"],platform:"Netflix",prio:1,access:"Included",imdb:8.0,rtC:null,rtA:null,pace:"Moderate",tone:"Balanced",epLen:50,seasons:1,eps:"7 eps",limited:false,moods:["crime","funny"],baseTaste:0.83,novelty:0.7,warn:"Some cartoonish violence.",drawback:"Not rated on Rotten Tomatoes; ends open for a season 2.",why:"A quirky '90s-set crime comedy from the Raj & DK stable — tonally the offbeat playfulness of <b>Lupin</b> and the crime-family warmth of <b>The Brothers Sun</b> rather than grim gangland drama. A fresh Hindi pick you've almost certainly missed."},
+   {id:"citadel",title:"Citadel",format:"series",langs:["en"],platform:"Prime Video",prio:0.92,access:"Included",imdb:5.4,rtC:52,rtA:53,pace:"Fast",tone:"Light",epLen:45,seasons:1,eps:"6 eps",limited:false,moods:["action","thriller"],baseTaste:0.72,novelty:0.45,warn:null,drawback:"The weakest-reviewed pick here — pure spectacle over story.",why:"A glossy, brain-off option: amnesiac super-spies, exotic locations and <b>6 Underground</b>-scale action from the Russo stable. The least substantial title on your slate — reach for it when you want <b>Mr. & Mrs. Smith</b> gloss and nothing more."}
   ];
 
-  // Release years — improves live-lookup accuracy (disambiguates remakes/reboots).
   var YEARS = {slowhorses:2022,recruit:2022,reacher:2022,familyman:2019,onlymurders:2021,gentlemen:2024,shrinking:2023,badsisters:2022,presumed:2024,hijack:2023,bodyguard:2018,specialops:2020,farzi:2023,fallout:2024,emily:2020,rednotice:2021,lostcity:2022,grayman:2022,murdermystery:2019,kaleidoscope:2023,fubar:2023,schitts:2015,jury:2023,oldman:2022,whitelotus:2021,gunsgulaabs:2023,citadel:2023};
-  var API = "/api/verify"; // Cloudflare Pages Function; falls back to curated data if unreachable.
+  var API = "/api/verify";
 
-  // ---------- state ----------
   var sel = {format:"either", language:"any", mood:"surprise", commitment:"any", energy:"any"};
-  var mode = "normal";
-  var sessionExcluded = {};
-  var current = [];
+  var mode = "normal", hasRun = false, sessionExcluded = {}, current = [], liveCache = {};
 
   var LS = {
     get:function(k,d){ try{ return JSON.parse(localStorage.getItem(k)) || d; }catch(e){ return d; } },
     set:function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   };
-  function userLiked(){ return LS.get("sp_liked",{}); }     // {title:{s,t,r}}
+  function userLiked(){ return LS.get("sp_liked",{}); }
   function userDisliked(){ return LS.get("sp_disliked",{}); }
   function watchlist(){ return LS.get("sp_watchlist",{}); }
-
   function isWatched(t){
     if(userLiked()[t.title] || userDisliked()[t.title]) return true;
     for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===t.title.toLowerCase()) return true; }
     return false;
   }
 
-  // ---------- filtering & scoring ----------
   function passFilters(t){
-    if(isWatched(t)) return false;
-    if(sessionExcluded[t.id]) return false;
+    if(isWatched(t) || sessionExcluded[t.id]) return false;
     if(sel.format!=="either" && t.format!==sel.format) return false;
     if(sel.language==="en" && t.langs.indexOf("en")<0) return false;
     if(sel.language==="hi" && t.langs.indexOf("hi")<0) return false;
@@ -395,181 +389,133 @@
     return true;
   }
   function paceScore(energy,pace){
-    var m={
-      gripping:{Fast:1,Moderate:0.6,Slow:0.25},
-      easy:{Fast:0.75,Moderate:1,Slow:0.6},
-      background:{Fast:0.5,Moderate:0.85,Slow:0.95},
-      any:{Fast:0.85,Moderate:0.9,Slow:0.7}
-    };
+    var m={gripping:{Fast:1,Moderate:0.6,Slow:0.25},easy:{Fast:0.75,Moderate:1,Slow:0.6},background:{Fast:0.5,Moderate:0.85,Slow:0.95},any:{Fast:0.85,Moderate:0.9,Slow:0.7}};
     return m[energy][pace];
   }
   function accessScore(a){ return a==="Included"?1 : a==="Rent or buy"?0.6 : 0.4; }
   function score(t){
-    var taste = t.baseTaste * 0.35;
-    var moodM = (sel.mood==="surprise") ? 0.9 : (t.moods.indexOf(sel.mood)>=0 ? 1 : 0.22);
-    var mood = moodM * 0.25;
-    var pace = paceScore(sel.energy, t.pace) * 0.15;
-    var q = ((t.rtA!=null?t.rtA:(t.imdb*10))/100) * 0.10;
-    var nov = t.novelty * 0.10;
-    var conv = (t.prio * accessScore(t.access)) * 0.05;
-    var raw = taste+mood+pace+q+nov+conv;
+    var taste=t.baseTaste*0.35;
+    var moodM=(sel.mood==="surprise")?0.9:(t.moods.indexOf(sel.mood)>=0?1:0.22);
+    var q=((t.rtA!=null?t.rtA:(t.imdb*10))/100)*0.10;
+    var conv=(t.prio*accessScore(t.access))*0.05;
+    var raw=taste + moodM*0.25 + paceScore(sel.energy,t.pace)*0.15 + q + t.novelty*0.10 + conv;
     return Math.max(46, Math.min(99, Math.round(raw*100)));
   }
 
   function recommend(){
     var pool = C.filter(passFilters);
-    document.getElementById("notfeeling").hidden = false;
-    if(mode==="emergency"){
-      pool = C.filter(function(t){ return !isWatched(t) && !sessionExcluded[t.id]; });
-    }
+    if(mode==="emergency") pool = C.filter(function(t){ return !isWatched(t) && !sessionExcluded[t.id]; });
     var scored = pool.map(function(t){ return {t:t, s:score(t)}; });
-    if(mode==="roulette" || mode==="emergency"){
-      scored.sort(function(){ return Math.random()-0.5; });
-      if(mode==="emergency") scored.sort(function(a,b){ return b.s-a.s; });
-    } else {
-      scored.sort(function(a,b){ return b.s - a.s; });
-    }
-    var relaxed=false;
+    if(mode==="roulette"){ scored.sort(function(){ return Math.random()-0.5; }); }
+    else { scored.sort(function(a,b){ return b.s-a.s; }); }
     if(scored.length<3 && mode==="normal"){
-      relaxed=true;
       var have={}; scored.forEach(function(x){have[x.t.id]=1;});
       C.filter(function(t){return !isWatched(t)&&!sessionExcluded[t.id]&&!have[t.id];})
-       .map(function(t){return {t:t,s:score(t)};})
-       .sort(function(a,b){return b.s-a.s;})
+       .map(function(t){return {t:t,s:score(t)};}).sort(function(a,b){return b.s-a.s;})
        .forEach(function(x){ if(scored.length<3) scored.push(x); });
     }
     current = scored.slice(0,3);
-    render(relaxed);
+    hasRun = true;
+    render();
   }
 
-  // ---------- rendering ----------
-  function el(html){ var d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+  function el(h){ var d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; }
   function jw(t){ return "https://www.justwatch.com/in/search?q="+encodeURIComponent(t.title); }
-  function imdbL(t){ return "https://www.imdb.com/find/?q="+encodeURIComponent(t.title); }
-  function rtL(t){ return "https://www.rottentomatoes.com/search?search="+encodeURIComponent(t.title); }
   function accClass(a){ return a==="Included"?"included":(a==="Rent or buy"?"rent":"extra"); }
-  function rt(v){ return v==null ? "Not rated" : v+"%"; }
-
-  function ring(pct){
-    var r=22, c=2*Math.PI*r, off=c*(1-pct/100);
-    return '<div class="conf"><svg width="58" height="58" viewBox="0 0 58 58">'+
-      '<circle cx="29" cy="29" r="'+r+'" fill="none" stroke="var(--ring-track)" stroke-width="5"/>'+
-      '<circle cx="29" cy="29" r="'+r+'" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
-      '</svg><span class="num" style="margin-top:-40px">'+pct+'</span><small style="margin-top:18px">match</small></div>';
-  }
+  function rtShort(v){ return v==null?"NR":v+"%"; }
+  function initials(s){ return s.replace(/[^A-Za-z0-9 ]/g,"").split(/\s+/).slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase(); }
 
   function cardHTML(x, best){
-    var t=x.t, inWl = !!watchlist()[t.title];
-    var runline = t.format==="movie" ? (t.runtime+" min") : (t.eps);
-    var scores =
-      '<span class="tag score"><b>IMDb</b> <span class="imdb-val">'+(t.imdb!=null?t.imdb+"/10":"n/a")+'</span></span>'+
-      '<span class="tag score"><b>RT Crit</b> <span class="rtc-val">'+rt(t.rtC)+'</span></span>'+
-      '<span class="tag score"><b>RT Aud</b> '+rt(t.rtA)+' <i class="ind" title="Indicative — no free live source exists for the RT audience score">≈</i></span>';
-    var facts =
-      '<span class="tag"><span class="dot"></span>Pace <b>'+t.pace+'</b></span>'+
-      '<span class="tag"><span class="dot"></span>Tone <b>'+t.tone+'</b></span>'+
-      '<span class="tag access-tag '+accClass(t.access)+'"><span class="dot"></span>'+t.access+'</span>';
-    var warnHTML = t.warn ? '<p class="flag warn"><span class="k">Heads-up</span><span>'+t.warn+'</span></p>' : '';
-    var drawHTML = t.drawback ? '<p class="flag"><span class="k">Trade-off</span><span>'+t.drawback+'</span></p>' : '';
-    var confHTML = best ? ring(x.s) : '<div class="conf mini"><span class="num">'+x.s+'</span><span class="bar"><i style="width:'+x.s+'%"></i></span></div>';
-
+    var t=x.t, inWl=!!watchlist()[t.title];
+    var warnHTML = t.warn ? '<p class="flag warn"><span class="k">⚠</span><span>'+t.warn+'</span></p>' : '';
+    var drawHTML = (best && t.drawback) ? '<p class="flag"><span class="k">•</span><span>'+t.drawback+'</span></p>' : '';
     return ''+
-    '<article class="card'+(best?' best':'')+'" data-id="'+t.id+'">'+
-      '<div class="card-top">'+
-        '<div class="title-block">'+
-          '<h3>'+t.title+'</h3>'+
-          '<div class="sub"><span class="fmt">'+(t.format==="movie"?"Movie":"Series")+'</span>'+
-            '<span>'+runline+'</span>'+
-            '<span>on <span class="platform platform-val">'+t.platform+'</span></span></div>'+
-        '</div>'+ confHTML +
+    '<article class="rec'+(best?' best':'')+'" data-id="'+t.id+'">'+
+      '<div class="poster" data-poster data-init="'+initials(t.title)+'">'+
+        '<span class="matchbadge">'+x.s+'<small>%</small></span>'+
       '</div>'+
-      '<div class="meta">'+scores+'</div>'+
-      '<div class="meta">'+facts+'</div>'+
-      '<p class="why">'+t.why+'</p>'+ warnHTML + drawHTML +
-      '<div class="verify">'+
-        '<span class="verify-status" data-status>Curated</span>'+
-        '<span class="vlabel">Verify</span>'+
-        '<a href="'+jw(t)+'" target="_blank" rel="noopener">JustWatch (India)</a>'+
-        '<a href="'+imdbL(t)+'" target="_blank" rel="noopener">IMDb</a>'+
-        '<a href="'+rtL(t)+'" target="_blank" rel="noopener">Rotten Tomatoes</a>'+
-        '<span class="cardbtns">'+
-          '<button class="icobtn wl'+(inWl?" on":"")+'" data-id="'+t.id+'" type="button">'+(inWl?"✓ On watchlist":"＋ Watchlist")+'</button>'+
-          '<button class="icobtn watched" data-id="'+t.id+'" type="button">We watched it</button>'+
-          '<button class="icobtn notthis" data-id="'+t.id+'" type="button">Not this one</button>'+
-        '</span>'+
+      '<div class="rbody">'+
+        '<h3>'+t.title+'</h3>'+
+        '<div class="rmeta noscroll">'+
+          '<span class="pill sc"><b>IMDb</b> <span class="imdb-val">'+(t.imdb!=null?t.imdb:"–")+'</span></span>'+
+          '<span class="pill sc"><b>RT</b> <span class="rtc-val">'+rtShort(t.rtC)+'</span></span>'+
+          '<span class="pill sc dim"><b>Aud</b> '+rtShort(t.rtA)+'≈</span>'+
+          '<span class="pill plat"><span class="platform-val">'+t.platform+'</span></span>'+
+          '<span class="pill access-tag '+accClass(t.access)+'">'+t.access+'</span>'+
+          '<span class="pill">'+(t.format==="movie"?"🎬 ":"📺 ")+t.eps+'</span>'+
+          '<span class="pill">'+t.pace+'</span>'+
+        '</div>'+
+        '<p class="why">'+t.why+'</p>'+
+        (best?'':'<button class="morebtn" type="button">Read more</button>')+
+        warnHTML + drawHTML +
+        '<div class="ractions">'+
+          '<button class="rbtn watched" data-id="'+t.id+'" type="button">✓ Seen it</button>'+
+          '<button class="rbtn wl'+(inWl?" on":"")+'" data-id="'+t.id+'" type="button">'+(inWl?"✓ Listed":"＋ List")+'</button>'+
+          '<button class="rbtn skip notthis" data-id="'+t.id+'" type="button">✕ Skip</button>'+
+          '<span class="vstat" data-status>Curated</span>'+
+        '</div>'+
+        '<a class="vlink" href="'+jw(t)+'" target="_blank" rel="noopener">Check on JustWatch India ↗</a>'+
       '</div>'+
     '</article>';
   }
 
-  function render(relaxed){
+  function render(){
     var R=document.getElementById("results");
     R.innerHTML="";
+    document.getElementById("dock").classList.add("show");
     if(!current.length){
-      R.appendChild(el('<div class="card"><p class="empty">No unwatched titles match that exact combination. Loosen the commitment or language filter, or hit <b>Emergency pick</b>.</p></div>'));
+      R.appendChild(el('<div class="empty">Nothing unwatched matches that exact combo. Loosen a filter or tap <b>Emergency pick</b>.</div>'));
       return;
     }
-    var head = mode==="emergency" ? "Emergency picks" : mode==="roulette" ? "Roulette — three spun up" : "Best Pick Tonight";
+    var head = mode==="emergency" ? "Emergency picks" : mode==="roulette" ? "Roulette — three spun up" : "Best pick tonight";
     R.appendChild(el('<div class="eyebrow">'+head+'</div>'));
-    if(relaxed) R.appendChild(el('<p class="note" style="margin-top:0">Only a couple matched exactly, so we widened the net slightly to give you three.</p>'));
-    current.forEach(function(x,i){ R.appendChild(el(cardHTML(x, i===0))); });
-    current.forEach(function(x){ verifyCard(x.t); });
-
+    current.forEach(function(x,i){
+      if(i===1) R.appendChild(el('<div class="eyebrow alt">Also tonight</div>'));
+      R.appendChild(el(cardHTML(x, i===0)));
+    });
     var win=current[0].t;
-    var line = win.format==="movie"
-      ? "the easiest press-play win for this mood — verify it's still streaming, pour a drink, done."
-      : "it lands your mood with the least effort and the strongest hook to keep you both watching.";
-    R.appendChild(el('<div class="verdict"><div class="lead">Final verdict</div><h4>Start with '+win.title+'</h4><p>'+win.why.replace(/<[^>]+>/g,"")+' Simply put — '+line+'</p></div>'));
+    var line = win.format==="movie" ? "the easiest press-play win for this mood." : "it lands your mood with the least effort and the strongest hook to keep you both watching.";
+    R.appendChild(el('<div class="verdict"><span class="vk">Start with</span><strong>'+win.title+'</strong><p>Simply put — '+line+'</p></div>'));
     wireCards();
+    current.forEach(function(x){ verifyCard(x.t); });
     R.scrollIntoView({behavior:"smooth", block:"start"});
   }
 
-  function wireCards(){
-    document.querySelectorAll(".icobtn.notthis").forEach(function(b){
-      b.onclick=function(){ sessionExcluded[b.dataset.id]=1; recommend(); };
-    });
-    document.querySelectorAll(".icobtn.wl").forEach(function(b){
-      b.onclick=function(){
-        var t=byId(b.dataset.id), wl=watchlist();
-        if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform};
-        LS.set("sp_watchlist",wl);
-        b.classList.toggle("on"); b.textContent = wl[t.title]?"✓ On watchlist":"＋ Watchlist";
-      };
-    });
-    document.querySelectorAll(".icobtn.watched").forEach(function(b){
-      b.onclick=function(){ openWatched(byId(b.dataset.id)); };
-    });
-  }
   function byId(id){ for(var i=0;i<C.length;i++) if(C[i].id===id) return C[i]; return null; }
 
-  // ---------- live verification (Cloudflare Pages Function) ----------
-  var liveCache = {};
-  function verifyCard(t){
-    var root = document.querySelector('.card[data-id="'+t.id+'"]');
-    if(!root) return;
-    var st = root.querySelector('[data-status]');
-    function apply(d){
-      if(d.imdb!=null) root.querySelector('.imdb-val').textContent = d.imdb+"/10";
-      if(d.rtCritics!=null) root.querySelector('.rtc-val').textContent = d.rtCritics+"%";
-      if(d.platform) root.querySelector('.platform-val').textContent = d.platform;
-      if(d.access){
-        var a=root.querySelector('.access-tag');
-        a.className='tag access-tag '+accClass(d.access);
-        a.innerHTML='<span class="dot"></span>'+d.access;
-      }
-      st.textContent='● Live · '+(d.updated||''); st.className='verify-status live';
-    }
-    if(liveCache[t.id]){ apply(liveCache[t.id]); return; }
-    st.textContent='Checking live…'; st.className='verify-status checking';
-    var q = API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(YEARS[t.id]?"&year="+YEARS[t.id]:"");
-    fetch(q).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(d){
-      if(!d || d.error) throw 0;
-      liveCache[t.id]=d; apply(d);
-    }).catch(function(){
-      st.textContent='Curated — live check off'; st.className='verify-status curated';
+  function wireCards(){
+    document.querySelectorAll(".notthis").forEach(function(b){ b.onclick=function(){ sessionExcluded[b.dataset.id]=1; recommend(); }; });
+    document.querySelectorAll(".rbtn.wl").forEach(function(b){
+      b.onclick=function(){ var t=byId(b.dataset.id), wl=watchlist();
+        if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform};
+        LS.set("sp_watchlist",wl); b.classList.toggle("on"); b.textContent=wl[t.title]?"✓ Listed":"＋ List"; };
+    });
+    document.querySelectorAll(".rbtn.watched").forEach(function(b){ b.onclick=function(){ openWatched(byId(b.dataset.id)); }; });
+    document.querySelectorAll(".morebtn").forEach(function(b){
+      b.onclick=function(){ var w=b.previousElementSibling; w.classList.toggle("exp"); b.textContent=w.classList.contains("exp")?"Read less":"Read more"; };
     });
   }
 
-  // ---------- watched modal ----------
+  function verifyCard(t){
+    var root=document.querySelector('.rec[data-id="'+t.id+'"]'); if(!root) return;
+    var st=root.querySelector('[data-status]');
+    function apply(d){
+      if(d.imdb!=null) root.querySelector('.imdb-val').textContent=d.imdb;
+      if(d.rtCritics!=null) root.querySelector('.rtc-val').textContent=d.rtCritics+"%";
+      if(d.platform) root.querySelector('.platform-val').textContent=d.platform;
+      if(d.access){ var a=root.querySelector('.access-tag'); a.className='pill access-tag '+accClass(d.access); a.textContent=d.access; }
+      if(d.poster){ var p=root.querySelector('[data-poster]'); p.style.backgroundImage="url('"+d.poster+"')"; p.classList.add("has"); }
+      st.textContent='● Live'; st.className='vstat live';
+    }
+    if(liveCache[t.id]){ apply(liveCache[t.id]); return; }
+    st.textContent='Checking…'; st.className='vstat checking';
+    fetch(API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(YEARS[t.id]?"&year="+YEARS[t.id]:""))
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(d){ if(!d||d.error) throw 0; liveCache[t.id]=d; apply(d); })
+      .catch(function(){ st.textContent='Curated'; st.className='vstat'; });
+  }
+
+  // watched sheet
   var pendingWatched=null;
   function openWatched(t){
     pendingWatched=t;
@@ -582,79 +528,64 @@
   function saveWatched(liked){
     if(!pendingWatched) return;
     var rec={ s:+document.getElementById("sRate").value, t:+document.getElementById("tRate").value, r:document.getElementById("wmReason").value.trim() };
-    var key = liked ? "sp_liked" : "sp_disliked";
-    var m=LS.get(key,{}); m[pendingWatched.title]=rec; LS.set(key,m);
+    var key=liked?"sp_liked":"sp_disliked"; var m=LS.get(key,{}); m[pendingWatched.title]=rec; LS.set(key,m);
     var wl=watchlist(); if(wl[pendingWatched.title]){ delete wl[pendingWatched.title]; LS.set("sp_watchlist",wl); }
-    document.getElementById("watchedOverlay").classList.remove("show");
-    pendingWatched=null;
-    recommend();
+    document.getElementById("watchedOverlay").classList.remove("show"); pendingWatched=null; recommend();
   }
   document.getElementById("sRate").oninput=function(){ document.getElementById("sVal").textContent=this.value; };
   document.getElementById("tRate").oninput=function(){ document.getElementById("tVal").textContent=this.value; };
   document.getElementById("wmLiked").onclick=function(){ saveWatched(true); };
   document.getElementById("wmDisliked").onclick=function(){ saveWatched(false); };
-  document.getElementById("wmClose").onclick=function(){ document.getElementById("watchedOverlay").classList.remove("show"); };
 
-  // ---------- lists modal ----------
+  // lists sheet
   function renderLists(){
-    var body=document.getElementById("listBody");
-    var liked=userLiked(), dis=userDisliked(), wl=watchlist();
-    function block(title,obj,key,withScores){
-      var keys=Object.keys(obj);
-      var h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
+    var body=document.getElementById("listBody"), liked=userLiked(), dis=userDisliked(), wl=watchlist();
+    function block(title,obj,key,sc){
+      var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
       if(!keys.length) h+='<li style="color:var(--faint)">Nothing yet</li>';
-      keys.forEach(function(name){
-        var sc = withScores && obj[name] && obj[name].s!=null ? '<span class="sc">'+obj[name].s+"/"+obj[name].t+'</span>' : '';
-        h+='<li>'+name+sc+' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(name)+'">✕</span></li>';
-      });
+      keys.forEach(function(n){ var s=sc&&obj[n]&&obj[n].s!=null?'<span class="sc">'+obj[n].s+"/"+obj[n].t+'</span>':'';
+        h+='<li>'+n+s+' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span></li>'; });
       return h+'</ul>';
     }
-    body.innerHTML =
-      block("Watched &amp; liked",liked,"sp_liked",true)+
-      block("Watched &amp; disliked",dis,"sp_disliked",true)+
+    body.innerHTML = block("Watched &amp; liked",liked,"sp_liked",true)+block("Watched &amp; disliked",dis,"sp_disliked",true)+
       block("Watchlist",wl,"sp_watchlist",false)+
-      '<h4>Seeded favourites <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+
-        LIKED_SEED.map(function(n){return '<li style="opacity:.7">'+n+'</li>';}).join("")+'</ul>';
-    body.querySelectorAll(".x").forEach(function(x){
-      x.onclick=function(){
-        var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m);
-        renderLists();
-      };
-    });
+      '<h4>Seeded favourites <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.65">'+n+'</li>';}).join("")+'</ul>';
+    body.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
   }
-  document.getElementById("openLists").onclick=function(){ renderLists(); document.getElementById("listsOverlay").classList.add("show"); };
-  document.getElementById("lmClose").onclick=function(){ document.getElementById("listsOverlay").classList.remove("show"); recommend(); };
-  [document.getElementById("watchedOverlay"),document.getElementById("listsOverlay")].forEach(function(o){
-    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if(o.id==="listsOverlay") recommend(); } });
-  });
 
-  // ---------- chips & buttons ----------
+  // wiring
+  document.getElementById("moods").addEventListener("click",function(e){
+    var b=e.target.closest(".mood"); if(!b) return;
+    document.querySelectorAll(".mood").forEach(function(m){ m.setAttribute("aria-pressed", m===b?"true":"false"); });
+    sel.mood=b.dataset.mood; mode="normal"; recommend();
+  });
   document.querySelectorAll(".chips").forEach(function(g){
     g.addEventListener("click",function(e){
       var b=e.target.closest(".chip"); if(!b) return;
-      g.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===b ? "true":"false"); });
-      sel[g.dataset.group]=b.dataset.val;
-      if(mode!=="normal"){ mode="normal"; }
+      g.querySelectorAll(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c===b?"true":"false"); });
+      sel[g.dataset.group]=b.dataset.val; mode="normal"; if(hasRun) recommend();
     });
   });
-  document.getElementById("recommend").onclick=function(){ mode="normal"; recommend(); };
-  document.getElementById("surprise").onclick=function(){ mode="roulette"; recommend(); };
+  document.getElementById("roulette").onclick=function(){ mode="roulette"; recommend(); };
   document.getElementById("emergency").onclick=function(){ mode="emergency"; recommend(); };
-  document.getElementById("notfeeling").onclick=function(){
-    current.forEach(function(x){ sessionExcluded[x.t.id]=1; });
-    recommend();
-  };
+  document.getElementById("reshuffle").onclick=function(){ current.forEach(function(x){ sessionExcluded[x.t.id]=1; }); recommend(); };
+  document.getElementById("toTop").onclick=function(){ window.scrollTo({top:0,behavior:"smooth"}); };
+  var rtog=document.getElementById("refineToggle");
+  rtog.onclick=function(){ var open=document.getElementById("refine").classList.toggle("open"); rtog.setAttribute("aria-expanded", open?"true":"false"); };
 
-  // ---------- theme ----------
-  var root=document.documentElement;
-  var savedTheme=LS.get("sp_theme",null);
-  if(savedTheme) root.setAttribute("data-theme",savedTheme);
+  document.getElementById("openLists").onclick=function(){ renderLists(); document.getElementById("listsOverlay").classList.add("show"); };
+  [ "watchedOverlay","listsOverlay" ].forEach(function(id){
+    var o=document.getElementById(id);
+    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if(id==="listsOverlay") recommend(); } });
+  });
+
+  // theme
+  var root=document.documentElement, savedT=LS.get("sp_theme",null);
+  if(savedT) root.setAttribute("data-theme",savedT);
   document.getElementById("themeBtn").onclick=function(){
-    var cur = root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
-    var next = cur==="dark"?"light":"dark";
-    root.setAttribute("data-theme",next); LS.set("sp_theme",next);
+    var cur=root.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+    var next=cur==="dark"?"light":"dark"; root.setAttribute("data-theme",next); LS.set("sp_theme",next);
+    document.querySelector('meta[name=theme-color]').setAttribute("content", next==="dark"?"#0b0d12":"#f4efe5");
   };
-
-  recommend();
 })();
 </script>
