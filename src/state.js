@@ -23,7 +23,7 @@ const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_)/;
 
 function mergeMeta(a, b) {
   const m = {};
-  [a || {}, b || {}].forEach((M) => { for (const k in M) { if (!m[k] || M[k].t >= m[k].t) m[k] = M[k]; } });
+  [a || {}, b || {}].forEach((M) => { for (const k in M) { const cur = m[k], inc = M[k]; if (!cur || inc.t > cur.t || (inc.t === cur.t && inc.d === 0)) m[k] = inc; } });
   return m;
 }
 function mergeKey(k, loc, cloud, meta) {

@@ -490,20 +490,21 @@
     else { _lsset(k,v); if(!_applying && k===META_KEY) schedulePush(); }
   };
   function stampMeta(k,oldV,newV){
-    var meta=LS.get(META_KEY,{}), now=Date.now(), ch=false;
+    var meta=LS.get(META_KEY,{}), ch=false;
+    function mark(id,d){ var mk=k+"|"+id, prev=meta[mk]?meta[mk].t:0; meta[mk]={t:Math.max(Date.now(),prev+1),d:d}; ch=true; }  // monotonic per item
     if(MAPRE.test(k)){ var o=oldV||{}, n=newV||{};
-      Object.keys(n).forEach(function(id){ if(!(id in o)){ meta[k+"|"+id]={t:now,d:0}; ch=true; } });
-      Object.keys(o).forEach(function(id){ if(!(id in n)){ meta[k+"|"+id]={t:now,d:1}; ch=true; } });
+      Object.keys(n).forEach(function(id){ if(!(id in o)) mark(id,0); });
+      Object.keys(o).forEach(function(id){ if(!(id in n)) mark(id,1); });
     } else if(ARRRE.test(k)){ var oa=oldV||[], na=newV||[];
-      na.forEach(function(id){ if(oa.indexOf(id)<0){ meta[k+"|"+id]={t:now,d:0}; ch=true; } });
-      oa.forEach(function(id){ if(na.indexOf(id)<0){ meta[k+"|"+id]={t:now,d:1}; ch=true; } });
-    } else if(BOOLRE.test(k)){ meta[k+"|_"]={t:now,d:newV?0:1}; ch=true; }
+      na.forEach(function(id){ if(oa.indexOf(id)<0) mark(id,0); });
+      oa.forEach(function(id){ if(na.indexOf(id)<0) mark(id,1); });
+    } else if(BOOLRE.test(k)){ mark("_", newV?0:1); }
     if(ch) _lsset(META_KEY, meta);
   }
   function listsOpen(){ return document.getElementById("listsOverlay").classList.contains("show"); }
   function localSyncKeys(){ var a=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(SYNCRE.test(k)) a.push(k); } return a; }
   function collectLocal(){ var o={}; localSyncKeys().forEach(function(k){ o[k]=LS.get(k,null); }); return o; }
-  function mergeMeta(a,b){ var m={}; [a||{},b||{}].forEach(function(M){ Object.keys(M).forEach(function(mk){ if(!m[mk]||M[mk].t>=m[mk].t) m[mk]=M[mk]; }); }); return m; }
+  function mergeMeta(a,b){ var m={}; [a||{},b||{}].forEach(function(M){ Object.keys(M).forEach(function(mk){ var cur=m[mk], inc=M[mk]; if(!cur || inc.t>cur.t || (inc.t===cur.t && inc.d===0)) m[mk]=inc; }); }); return m; }
   function mergeKey(k,loc,cloud,meta){
     if(MAPRE.test(k)){ var out={}, ids={}; Object.keys(loc||{}).forEach(function(id){ids[id]=1;}); Object.keys(cloud||{}).forEach(function(id){ids[id]=1;});
       Object.keys(ids).forEach(function(id){ var mm=meta[k+"|"+id]; if(mm&&mm.d===1) return; out[id]=(cloud&&cloud[id]!==undefined)?cloud[id]:(loc||{})[id]; }); return out; }
