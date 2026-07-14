@@ -236,15 +236,27 @@
   /* profiles sidebar drawer */
   .drawer{position:fixed; inset:0; z-index:45; display:none; background:rgba(4,5,9,.5); backdrop-filter:blur(3px)}
   .drawer.show{display:block}
-  .drawer-panel{position:absolute; top:0; left:0; bottom:0; width:min(90%,400px); background:var(--bg); border-right:1px solid var(--line);
-    display:flex; flex-direction:column; transform:translateX(-102%); transition:transform .28s cubic-bezier(.2,.7,.2,1); box-shadow:24px 0 60px -30px rgba(0,0,0,.5)}
+  .drawer-panel{position:absolute; inset:0; width:100%; background:var(--bg);
+    display:flex; flex-direction:column; transform:translateX(-102%); transition:transform .28s cubic-bezier(.2,.7,.2,1)}
   .drawer.show .drawer-panel{transform:translateX(0)}
   .drawer-head{display:flex; align-items:center; justify-content:space-between; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; border-bottom:1px solid var(--line)}
   .drawer-title{font-size:16px; font-weight:800; letter-spacing:.02em}
   .sb-tabs{margin:14px 14px 4px}
-  .sb-scroll{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:6px 16px calc(28px + env(safe-area-inset-bottom))}
-  .sb-scroll h3{margin:14px 0 8px; font-size:17px}
+  .sb-tabs{margin:14px auto 4px; max-width:620px}
+  .sb-scroll{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:6px 16px calc(28px + env(safe-area-inset-bottom)); max-width:620px; width:100%; margin:0 auto}
+  .sb-scroll h3{margin:16px 0 8px; font-size:17px}
   @media (prefers-reduced-motion:reduce){ .drawer-panel{transition:none} }
+
+  /* visual list rows with posters */
+  .rowlist{display:flex; flex-direction:column; gap:8px; margin:4px 0 8px}
+  .rl{display:flex; align-items:center; gap:12px; padding:8px; border:1px solid var(--line); border-radius:12px; background:var(--card)}
+  .rl-poster{width:40px; height:60px; border-radius:8px; background:var(--card2); background-size:cover; background-position:center; flex-shrink:0; position:relative; overflow:hidden}
+  .rl-poster::after{content:attr(data-init); position:absolute; inset:0; display:grid; place-items:center; font-size:12px; font-weight:800; color:var(--faint)}
+  .rl-poster.has::after{content:""}
+  .rl-name{flex:1; min-width:0; font-size:14px; font-weight:650; line-height:1.3}
+  .rl-sc{display:block; font-size:12px; color:var(--accent); font-weight:700; font-family:var(--mono); margin-top:2px}
+  .rl-x{flex-shrink:0; width:32px; height:32px; border-radius:9px; border:1px solid var(--line); background:var(--card2); color:var(--faint); cursor:pointer; font-size:13px}
+  .rl-x:active{transform:scale(.94)}
 
   .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:flex-end; justify-content:center; background:rgba(4,5,9,.6); backdrop-filter:blur(3px)}
   @media(min-width:560px){ .overlay{align-items:center} }
@@ -842,15 +854,30 @@
   document.getElementById("wmSave").onclick=function(){ saveWatched(); };
 
   // lists sheet
+  // poster thumbnails for list rows (lazy + cached)
+  var posterCache=null;
+  function pcache(){ if(!posterCache) posterCache=LS.get("sp_posters",{}); return posterCache; }
+  function setPoster(el,url){ if(!el||!url) return; el.style.backgroundImage="url('"+url+"')"; el.classList.add("has"); }
+  var _pObs = ("IntersectionObserver" in window) ? new IntersectionObserver(function(ents){ ents.forEach(function(en){ if(en.isIntersecting){ _pObs.unobserve(en.target); fetchPoster(en.target); } }); }, {rootMargin:"300px"}) : null;
+  function fetchPoster(row){ var el=row.querySelector(".rl-poster"), title=decodeURIComponent(row.dataset.title), c=pcache();
+    if(c[title]!==undefined){ setPoster(el,c[title]); return; }
+    fetch("/api/search?q="+encodeURIComponent(title)).then(function(r){return r.ok?r.json():null;}).then(function(d){
+      var res=(d&&d.results)||[], url=res.length?res[0].poster:""; c[title]=url||""; LS.set("sp_posters",c); setPoster(el,url); }).catch(function(){});
+  }
+  function loadPosters(container){ var c=pcache();
+    container.querySelectorAll(".rl").forEach(function(row){ var title=decodeURIComponent(row.dataset.title), el=row.querySelector(".rl-poster");
+      if(c[title]){ setPoster(el,c[title]); } else if(c[title]===""){ } else if(_pObs){ _pObs.observe(row); } else { fetchPoster(row); } });
+  }
   function listBlock(title,obj,key,scoreMode,ed){
-    var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4><ul>';
-    if(!keys.length) h+='<li style="color:var(--faint)">Nothing yet</li>';
+    var keys=Object.keys(obj), h='<h4>'+title+' <span class="c">'+keys.length+'</span></h4>';
+    if(!keys.length) return h+'<div class="mhint" style="margin:2px 0 10px">Nothing yet.</div>';
+    h+='<div class="rowlist">';
     keys.forEach(function(n){ var e=obj[n], sc='';
-      if(scoreMode==="solo"&&e&&e.score!=null) sc='<span class="sc">'+e.score+'/10</span>';
-      else if(scoreMode==="both"&&e&&e.s!=null) sc='<span class="sc">S'+e.s+' · T'+e.t+'</span>';
-      var x=(ed===false)?'':' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span>';
-      h+='<li>'+n+sc+x+'</li>'; });
-    return h+'</ul>';
+      if(scoreMode==="solo"&&e&&e.score!=null) sc='<span class="rl-sc">Rated '+e.score+'/10</span>';
+      else if(scoreMode==="both"&&e&&e.s!=null) sc='<span class="rl-sc">Sulay '+e.s+' · Tanya '+e.t+'</span>';
+      var x=(ed===false)?'':'<button class="rl-x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'" type="button">✕</button>';
+      h+='<div class="rl" data-title="'+encodeURIComponent(n)+'"><div class="rl-poster" data-init="'+initials(n)+'"></div><div class="rl-name">'+n+sc+'</div>'+x+'</div>'; });
+    return h+'</div>';
   }
   function renderLists(){
     var body=document.getElementById("listBody"), html='', nm=nameOf(profile), ed=canEdit(profile);
@@ -871,7 +898,7 @@
     if(profile==="both"){
       html+=listBlock("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both", true);
       html+=listBlock("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both", true);
-      html+='<h4>Watched together (seed) <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.6">'+n+'</li>';}).join("")+'</ul>';
+      html+=listBlock("Watched together", (function(){var o={};LIKED_SEED.forEach(function(n){o[n]=1;});return o;})(), "", null, false);
     } else {
       html+=listBlock(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo", ed);
       html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo", ed);
@@ -879,7 +906,8 @@
     body.innerHTML=html;
     var obb=document.getElementById("obOpenBtn"); if(obb) obb.onclick=function(){ requireEdit(profile,function(){ openOnboard(profile); }); };
     var obu=document.getElementById("obUnlockBtn"); if(obu) obu.onclick=function(){ openPin("enter",profile,function(){ syncProfile(); renderLists(); }); };
-    body.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
+    body.querySelectorAll(".rl-x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderLists(); }; });
+    loadPosters(body);
     body.querySelectorAll(".tastechips .chip").forEach(function(c){ c.onclick=function(){
       var arr=prefsOf(profile), k=c.dataset.mood, i=arr.indexOf(k);
       if(i>=0) arr.splice(i,1); else arr.push(k);
