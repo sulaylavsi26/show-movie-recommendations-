@@ -190,6 +190,8 @@
   .pill.access-tag.extra{color:var(--bad); border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
   .why{margin:0; font-size:13.5px; line-height:1.55; color:color-mix(in srgb,var(--text) 88%, var(--muted))}
   .why b{color:var(--accent); font-weight:650}
+  .becuz{margin:0; font-size:12px; font-weight:650; color:var(--good)}
+  .becuz b{color:var(--text); font-weight:750}
   .rec:not(.best) .why{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
   .rec:not(.best) .why.exp{-webkit-line-clamp:unset}
   .morebtn{background:none; border:none; color:var(--accent); font-size:12.5px; font-weight:650; cursor:pointer; padding:0; margin-top:-4px; align-self:flex-start}
@@ -481,9 +483,9 @@
 
   // ---- cloud sync (last-writer-wins per item; adds, deletes and re-adds all propagate) ----
   var META_KEY="sp_syncmeta";
-  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_|syncmeta$)/;
-  var DATARE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_)/;
-  var MAPRE=/^sp_(liked_|disliked_|wl_|watched$)/, ARRRE=/^sp_pref_/, BOOLRE=/^sp_onboarded_/;
+  var SYNCRE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_|skip_|syncmeta$)/;
+  var DATARE=/^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_|skip_)/;
+  var MAPRE=/^sp_(liked_|disliked_|wl_|skip_|watched$)/, ARRRE=/^sp_pref_/, BOOLRE=/^sp_onboarded_/;
   var _applying=false, _pushT=null, _lsset=LS.set;
   LS.set=function(k,v){
     if(!_applying && DATARE.test(k)){ var oldV=LS.get(k,null); _lsset(k,v); stampMeta(k,oldV,v); schedulePush(); }
@@ -548,18 +550,32 @@
   function isWatched(t){
     var title=t.title;
     for(var i=0;i<LIKED_SEED.length;i++){ if(LIKED_SEED[i].toLowerCase()===title.toLowerCase()) return true; } // watched together (seed)
+    if(LS.get("sp_skip_"+profile,{})[title]) return true;                                 // skipped in this profile
     if(profile==="both") return !!(seenSet("sulay")[title] || seenSet("tanya")[title]);  // either has seen → skip for Both
     return !!seenSet(profile)[title];                                                     // only this person's own history
   }
   function byTitle(x){ for(var i=0;i<C.length;i++) if(C[i].title.toLowerCase()===String(x).toLowerCase()) return C[i]; return null; }
-  function prefsEff(p){ var s={}; prefsOf(p).forEach(function(x){s[x]=1;});
-    var lk=likedOf(p); Object.keys(lk).forEach(function(title){ var t=byTitle(title); if(t) t.moods.forEach(function(m){s[m]=1;}); });
-    return Object.keys(s);
+  function entryMoods(title,e){ var ms=(e&&e.moods&&e.moods.length)?e.moods:(byTitle(title)?byTitle(title).moods:[]); return ms||[]; }
+  function addMoods(v,map,w){ Object.keys(map||{}).forEach(function(title){ entryMoods(title,map[title]).forEach(function(m){ v[m]=(v[m]||0)+w; }); }); }
+  // Weighted taste vector per person, learned from every action.
+  function tasteVector(p){
+    var v={};
+    prefsOf(p).forEach(function(m){ v[m]=(v[m]||0)+3; });   // explicitly chosen genres: strong +
+    addMoods(v, likedOf(p), 2);                              // liked: +
+    addMoods(v, LS.get("sp_wl_"+p,{}), 1);                   // watchlisted: mild +
+    addMoods(v, dislikedOf(p), -2);                          // disliked: −
+    addMoods(v, LS.get("sp_skip_"+p,{}), -0.6);              // skipped: soft −
+    return v;
   }
-  function moodAff(pref, t){ if(!pref.length) return 1; return t.moods.some(function(m){return pref.indexOf(m)>=0;})?1:0.4; }
+  function affinityFor(p,t){
+    if(!t.moods || !t.moods.length) return 0.85;
+    var v=tasteVector(p), s=0; t.moods.forEach(function(m){ s+=(v[m]||0); });
+    s=s/t.moods.length;
+    return Math.max(0.25, Math.min(1.25, 0.72 + s*0.10));
+  }
   function affinity(t){
-    if(profile==="both") return (moodAff(prefsEff("sulay"),t)+moodAff(prefsEff("tanya"),t))/2;
-    return moodAff(prefsEff(profile), t);
+    if(profile==="both") return (affinityFor("sulay",t)+affinityFor("tanya",t))/2;
+    return affinityFor(profile,t);
   }
   function nameOf(p){ return p==="sulay"?"Sulay":p==="tanya"?"Tanya":"Both of you"; }
 
@@ -611,7 +627,7 @@
   function mkCand(x, fmt){
     return { id:"tmdb-"+fmt+"-"+x.id, title:x.title, format:fmt, langs:["en","hi"], platform:"—", prio:0.8, access:"Included",
       imdb:(x.vote? +(+x.vote).toFixed(1):7), rtC:null, rtA:null, pace:"Moderate", tone:"Balanced", runtime:0, eps:(x.year||"—"), seasons:2, epLen:45, limited:false,
-      moods: sel.moods.slice(), baseTaste:0.62, novelty:0.8, warn:null, drawback:null, _poster:x.poster, _year:x.year, discover:true,
+      moods: (x.moods&&x.moods.length)?x.moods:sel.moods.slice(), baseTaste:0.62, novelty:0.8, warn:null, drawback:null, _poster:x.poster, _year:x.year, discover:true,
       why: "A well-rated "+moodLabel()+" "+(fmt==="movie"?"film":"series")+" streaming in India that's new to you — pulled from the wider catalogue to match tonight's mood, so it's a fresh find beyond your usual list." };
   }
   function fillFromDiscover(){
@@ -660,6 +676,14 @@
   function rtShort(v){ return v==null?"NR":v+"%"; }
   function initials(s){ return s.replace(/[^A-Za-z0-9 ]/g,"").split(/\s+/).slice(0,2).map(function(w){return w[0]||"";}).join("").toUpperCase(); }
 
+  function becauseLine(t){
+    if(!t.moods || !t.moods.length) return "";
+    var liked = profile==="both" ? Object.assign({}, likedOf("sulay"), likedOf("tanya")) : likedOf(profile);
+    var names=Object.keys(liked), matches=[];
+    for(var i=0;i<names.length && matches.length<2;i++){ var ms=(liked[names[i]]&&liked[names[i]].moods)||[]; if(ms.some(function(m){return t.moods.indexOf(m)>=0;})) matches.push(names[i]); }
+    if(!matches.length) return "";
+    return '<p class="becuz">🎯 Because you liked <b>'+matches.join('</b> &amp; <b>')+'</b></p>';
+  }
   function cardHTML(x, best){
     var t=x.t, inWl=!!watchlist()[t.title];
     var warnHTML = t.warn ? '<p class="flag warn"><span class="k">⚠</span><span>'+t.warn+'</span></p>' : '';
@@ -684,6 +708,7 @@
           '<span class="pill">'+t.pace+'</span>'+
         '</div>'+
         '<p class="why">'+t.why+'</p>'+
+        becauseLine(t)+
         (best?'':'<button class="morebtn" type="button">Read more</button>')+
         warnHTML + drawHTML +
         '<div class="ractions">'+
@@ -720,15 +745,18 @@
   }
 
   function byId(id){ for(var i=0;i<C.length;i++) if(C[i].id===id) return C[i]; return null; }
+  function pick(id){ var c=byId(id); if(c) return c; for(var i=0;i<current.length;i++) if(current[i].t.id===id) return current[i].t; return null; }
 
   function wireCards(){
-    document.querySelectorAll(".notthis").forEach(function(b){ b.onclick=function(){ sessionExcluded[b.dataset.id]=1; recommend(); }; });
+    document.querySelectorAll(".notthis").forEach(function(b){ b.onclick=function(){ var t=pick(b.dataset.id);
+      if(t && canEdit(profile)){ var k="sp_skip_"+profile, m=LS.get(k,{}); m[t.title]={moods:t.moods||[]}; LS.set(k,m); }  // learn: soft −
+      sessionExcluded[b.dataset.id]=1; recommend(); }; });
     document.querySelectorAll(".rbtn.wl").forEach(function(b){
-      b.onclick=function(){ requireEdit(profile,function(){ var key="sp_wl_"+profile, wl=LS.get(key,{}), t=byId(b.dataset.id);
-        if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform};
+      b.onclick=function(){ requireEdit(profile,function(){ var key="sp_wl_"+profile, wl=LS.get(key,{}), t=pick(b.dataset.id);
+        if(wl[t.title]) delete wl[t.title]; else wl[t.title]={platform:t.platform, moods:t.moods||[]};
         LS.set(key,wl); var on=!!LS.get(key,{})[t.title]; b.classList.toggle("on",on); b.textContent=on?"✓ Listed":"＋ List"; }); };
     });
-    document.querySelectorAll(".rbtn.watched").forEach(function(b){ b.onclick=function(){ openWatched(byId(b.dataset.id)); }; });
+    document.querySelectorAll(".rbtn.watched").forEach(function(b){ b.onclick=function(){ openWatched(pick(b.dataset.id)); }; });
     document.querySelectorAll(".morebtn").forEach(function(b){
       b.onclick=function(){ var w=b.previousElementSibling; w.classList.toggle("exp"); b.textContent=w.classList.contains("exp")?"Read less":"Read more"; };
     });
@@ -772,15 +800,15 @@
     document.getElementById("watchedOverlay").classList.add("show");
   }
   function addList(k,title,rec){ var m=LS.get(k,{}); m[title]=rec; LS.set(k,m); }
-  function fileTaste(p,title,sc,r){ addList((sc>=6?"sp_liked_":"sp_disliked_")+p, title, {score:sc, r:r}); }
+  function fileTaste(p,title,sc,r,moods){ addList((sc>=6?"sp_liked_":"sp_disliked_")+p, title, {score:sc, r:r, moods:moods||[]}); }
   function saveWatched(){
     if(!pendingWatched) return;
-    var title=pendingWatched.title;
+    var title=pendingWatched.title, ms=pendingWatched.moods||[];
     var s=+document.getElementById("sRate").value, t=+document.getElementById("tRate").value, r=document.getElementById("wmReason").value.trim();
-    if(canEdit("sulay")) fileTaste("sulay",title,s,r);
-    if(canEdit("tanya")) fileTaste("tanya",title,t,r);
-    if(s>=7 && t>=7) addList("sp_liked_both",title,{s:s,t:t,r:r});
-    else if(s<=5 && t<=5) addList("sp_disliked_both",title,{s:s,t:t,r:r});
+    if(canEdit("sulay")) fileTaste("sulay",title,s,r,ms);
+    if(canEdit("tanya")) fileTaste("tanya",title,t,r,ms);
+    if(s>=7 && t>=7) addList("sp_liked_both",title,{s:s,t:t,r:r,moods:ms});
+    else if(s<=5 && t<=5) addList("sp_disliked_both",title,{s:s,t:t,r:r,moods:ms});
     ["sulay","tanya","both"].forEach(function(p){ var k="sp_wl_"+p, wl=LS.get(k,{}); if(wl[title]){ delete wl[title]; LS.set(k,wl); } });
     document.getElementById("watchedOverlay").classList.remove("show"); pendingWatched=null; recommend();
   }
@@ -836,7 +864,10 @@
 
   // ---- onboarding / favourites builder ----
   var onbP="sulay";
-  function toggleFav(p,title,extra){ var k="sp_liked_"+p, m=LS.get(k,{}); if(m[title]) delete m[title]; else m[title]=Object.assign({fav:true},extra||{}); LS.set(k,m); }
+  function toggleFav(p,title,extra){ var k="sp_liked_"+p, m=LS.get(k,{});
+    if(m[title]){ delete m[title]; }
+    else { var base=Object.assign({fav:true},extra||{}); if(!base.moods || !base.moods.length){ var ct=byTitle(title); base.moods=ct?ct.moods:[]; } m[title]=base; }
+    LS.set(k,m); }
   function renderSuggest(){
     var liked=likedOf(onbP), sug=C.slice().sort(function(a,b){return b.baseTaste-a.baseTaste;}).slice(0,14);
     document.getElementById("onbSuggest").innerHTML=sug.map(function(t){ return '<button class="ob-chip'+(liked[t.title]?" on":"")+'" type="button" data-title="'+encodeURIComponent(t.title)+'"><span class="h">❤</span>'+t.title+'</button>'; }).join("");
@@ -906,8 +937,8 @@
       if(!res.length){ box.innerHTML='<div class="mhint">No matches — try a different spelling.</div>'; return; }
       box.innerHTML=res.map(function(x){ var on=!!liked[x.title];
         var thumb = x.poster ? '<img alt="" src="'+x.poster+'">' : '<div style="width:34px;height:51px;border-radius:6px;background:var(--card2);flex-shrink:0"></div>';
-        return '<div class="ob-item">'+thumb+'<div class="t">'+x.title+'<small>'+(x.type==="series"?"Series":"Movie")+(x.year?" · "+x.year:"")+'</small></div><button class="ob-add'+(on?" on":"")+'" type="button" data-title="'+encodeURIComponent(x.title)+'" data-year="'+(x.year||"")+'" data-type="'+x.type+'">'+(on?"✓ Added":"＋ Add")+'</button></div>'; }).join("");
-      box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; renderMine(); }; });
+        return '<div class="ob-item">'+thumb+'<div class="t">'+x.title+'<small>'+(x.type==="series"?"Series":"Movie")+(x.year?" · "+x.year:"")+'</small></div><button class="ob-add'+(on?" on":"")+'" type="button" data-title="'+encodeURIComponent(x.title)+'" data-year="'+(x.year||"")+'" data-type="'+x.type+'" data-moods="'+((x.moods||[]).join(","))+'">'+(on?"✓ Added":"＋ Add")+'</button></div>'; }).join("");
+      box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); var mds=b.dataset.moods?b.dataset.moods.split(","):[]; toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type,moods:mds}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; renderMine(); }; });
     }).catch(function(){});
   }
   document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); recommend(); };

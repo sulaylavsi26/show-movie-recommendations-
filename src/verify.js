@@ -4,6 +4,19 @@
 // streaming availability. Keys are read from the Worker environment (never the
 // client): TMDB_API_KEY (availability + IMDb id) and OMDB_API_KEY (scores).
 
+// Map TMDb genre ids to the app's mood buckets, so any title can feed taste.
+const G2M = {
+  28:["action"], 12:["action","glossy"], 35:["funny","warm"], 80:["crime"], 10751:["warm"],
+  14:["action"], 9648:["mystery"], 10749:["warm","glossy"], 878:["action"], 53:["thriller"],
+  10752:["thriller","action"], 37:["action"], 10759:["action","thriller"], 10765:["action"],
+  10766:["glossy"], 10768:["thriller"],
+};
+export function genresToMoods(ids) {
+  const s = {};
+  (ids || []).forEach((id) => { (G2M[id] || []).forEach((m) => (s[m] = 1)); });
+  return Object.keys(s);
+}
+
 const PLATFORM_ORDER = [
   ["Netflix", /netflix/i],
   ["Amazon Prime Video", /prime video|amazon prime/i],
@@ -60,7 +73,7 @@ export async function verify(request, env) {
   const OMDB = env.OMDB_API_KEY;
   const out = {
     title, imdb: null, rtCritics: null, access: null, platform: null,
-    providers: [], imdbId: null, justwatch: null, poster: null, backdrop: null, platformLogo: null,
+    providers: [], imdbId: null, justwatch: null, poster: null, backdrop: null, platformLogo: null, moods: [],
     updated: new Date().toISOString().slice(0, 10), source: {},
   };
 
@@ -79,6 +92,7 @@ export async function verify(request, env) {
       );
       if (detail) {
         out.imdbId = (detail.external_ids && detail.external_ids.imdb_id) || null;
+        if (Array.isArray(detail.genres)) out.moods = genresToMoods(detail.genres.map((g) => g.id));
         const wp = detail["watch/providers"];
         const area = wp && wp.results && wp.results.IN;
         if (area) {

@@ -2,6 +2,8 @@
 // Bind a KV namespace as STATE in wrangler.jsonc to enable cross-device sync.
 // Without the binding these endpoints degrade gracefully (no persistence).
 
+import { genresToMoods } from "./verify.js";
+
 const KEY = "household:main";
 
 function j(obj, status) {
@@ -18,8 +20,8 @@ function j(obj, status) {
 // Last-writer-wins merge keyed by per-item metadata (sp_syncmeta): each item
 // carries {t: timestamp, d: 0|1 deleted}, so adds, deletes and re-adds all
 // converge correctly across devices instead of just unioning.
-const MAP = /^sp_(liked_|disliked_|wl_|watched$)/, ARR = /^sp_pref_/, BOOL = /^sp_onboarded_/;
-const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_)/;
+const MAP = /^sp_(liked_|disliked_|wl_|skip_|watched$)/, ARR = /^sp_pref_/, BOOL = /^sp_onboarded_/;
+const DATA = /^sp_(liked_|disliked_|wl_|pref_|watched$|onboarded_|lock_|skip_)/;
 
 function mergeMeta(a, b) {
   const m = {};
@@ -105,6 +107,7 @@ export async function discover(request, env) {
     type: type === "tv" ? "series" : "movie",
     poster: x.poster_path ? "https://image.tmdb.org/t/p/w342" + x.poster_path : null,
     vote: x.vote_average,
+    moods: genresToMoods(x.genre_ids),
   })));
   return new Response(JSON.stringify({ results }), {
     headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" },
@@ -125,6 +128,7 @@ export async function search(request, env) {
       year: (x.release_date || x.first_air_date || "").slice(0, 4),
       type: x.media_type === "tv" ? "series" : "movie",
       poster: x.poster_path ? "https://image.tmdb.org/t/p/w154" + x.poster_path : null,
+      moods: genresToMoods(x.genre_ids),
     })));
   return j({ results });
 }
