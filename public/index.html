@@ -233,6 +233,19 @@
   .dbtn.ghost{padding:0 16px; background:color-mix(in srgb,var(--card) 80%,transparent); backdrop-filter:blur(10px); color:var(--text)}
 
   /* ---- modals ---- */
+  /* profiles sidebar drawer */
+  .drawer{position:fixed; inset:0; z-index:45; display:none; background:rgba(4,5,9,.5); backdrop-filter:blur(3px)}
+  .drawer.show{display:block}
+  .drawer-panel{position:absolute; top:0; left:0; bottom:0; width:min(90%,400px); background:var(--bg); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; transform:translateX(-102%); transition:transform .28s cubic-bezier(.2,.7,.2,1); box-shadow:24px 0 60px -30px rgba(0,0,0,.5)}
+  .drawer.show .drawer-panel{transform:translateX(0)}
+  .drawer-head{display:flex; align-items:center; justify-content:space-between; padding:calc(14px + env(safe-area-inset-top)) 16px 14px; border-bottom:1px solid var(--line)}
+  .drawer-title{font-size:16px; font-weight:800; letter-spacing:.02em}
+  .sb-tabs{margin:14px 14px 4px}
+  .sb-scroll{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:6px 16px calc(28px + env(safe-area-inset-bottom))}
+  .sb-scroll h3{margin:14px 0 8px; font-size:17px}
+  @media (prefers-reduced-motion:reduce){ .drawer-panel{transition:none} }
+
   .overlay{position:fixed; inset:0; z-index:50; display:none; align-items:flex-end; justify-content:center; background:rgba(4,5,9,.6); backdrop-filter:blur(3px)}
   @media(min-width:560px){ .overlay{align-items:center} }
   .overlay.show{display:flex}
@@ -391,13 +404,22 @@
   </div>
 </div>
 
-<!-- lists sheet -->
-<div class="overlay" id="listsOverlay">
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="lm-title">
-    <div class="grab"></div>
-    <h3 id="lm-title">Your lists</h3>
-    <div class="msub" id="lm-sub">Marked titles move here and stop being recommended.</div>
-    <div class="listcol" id="listBody"></div>
+<!-- profiles sidebar -->
+<div class="drawer" id="sidebar">
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-label="Profiles">
+    <div class="drawer-head">
+      <span class="drawer-title">Profiles</span>
+      <button class="icon" id="sbClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="profilebar sb-tabs" id="sbTabs">
+      <button class="ptab" data-p="both" type="button"><span class="av both">❤</span>Both</button>
+      <button class="ptab" data-p="sulay" type="button"><span class="av sulay">S</span>Sulay</button>
+      <button class="ptab" data-p="tanya" type="button"><span class="av tanya">T</span>Tanya</button>
+    </div>
+    <div class="sb-scroll">
+      <h3 id="lm-title">Your lists</h3>
+      <div class="listcol" id="listBody"></div>
+    </div>
   </div>
 </div>
 
@@ -506,7 +528,7 @@
     } else if(BOOLRE.test(k)){ mark("_", newV?0:1); }
     if(ch) _lsset(META_KEY, meta);
   }
-  function listsOpen(){ return document.getElementById("listsOverlay").classList.contains("show"); }
+  function listsOpen(){ return document.getElementById("sidebar").classList.contains("show"); }
   function localSyncKeys(){ var a=[]; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(SYNCRE.test(k)) a.push(k); } return a; }
   function collectLocal(){ var o={}; localSyncKeys().forEach(function(k){ o[k]=LS.get(k,null); }); return o; }
   function mergeMeta(a,b){ var m={}; [a||{},b||{}].forEach(function(M){ Object.keys(M).forEach(function(mk){ var cur=m[mk], inc=M[mk]; if(!cur || inc.t>cur.t || (inc.t===cur.t && inc.d===0)) m[mk]=inc; }); }); return m; }
@@ -944,7 +966,7 @@
       box.querySelectorAll(".ob-add").forEach(function(b){ b.onclick=function(){ var title=decodeURIComponent(b.dataset.title); var mds=b.dataset.moods?b.dataset.moods.split(","):[]; toggleFav(onbP,title,{year:b.dataset.year,type:b.dataset.type,moods:mds}); var on=!!likedOf(onbP)[title]; b.classList.toggle("on",on); b.textContent=on?"✓ Added":"＋ Add"; renderMine(); }; });
     }).catch(function(){});
   }
-  document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); recommend(); };
+  document.getElementById("onbDone").onclick=function(){ LS.set("sp_onboarded_"+onbP,true); document.getElementById("onbOverlay").classList.remove("show"); if(listsOpen()) renderLists(); };
 
   // wiring
   document.getElementById("moods").addEventListener("click",function(e){
@@ -987,10 +1009,14 @@
   var rtog=document.getElementById("refineToggle");
   rtog.onclick=function(){ var open=document.getElementById("refine").classList.toggle("open"); rtog.setAttribute("aria-expanded", open?"true":"false"); };
 
-  document.getElementById("openLists").onclick=function(){ renderLists(); document.getElementById("listsOverlay").classList.add("show"); };
-  [ "watchedOverlay","listsOverlay","onbOverlay","pinOverlay" ].forEach(function(id){
+  document.getElementById("openLists").onclick=function(){ syncProfile(); renderLists(); document.getElementById("sidebar").classList.add("show"); };
+  document.getElementById("sbClose").onclick=function(){ document.getElementById("sidebar").classList.remove("show"); };
+  document.getElementById("sidebar").addEventListener("click",function(e){ if(e.target===this) this.classList.remove("show"); });
+  document.getElementById("sbTabs").addEventListener("click",function(e){ var b=e.target.closest(".ptab"); if(!b) return;
+    profile=b.dataset.p; LS.set("sp_profile",profile); syncProfile(); resetPicks(); renderLists(); });
+  [ "watchedOverlay","onbOverlay","pinOverlay" ].forEach(function(id){
     var o=document.getElementById(id);
-    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if((id==="listsOverlay"||id==="onbOverlay") && hasRun) recommend(); } });
+    o.addEventListener("click",function(e){ if(e.target===o){ o.classList.remove("show"); if(id==="onbOverlay" && listsOpen()) renderLists(); } });
   });
 
   // restore saved profile
