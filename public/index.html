@@ -260,6 +260,27 @@
   .pv-lock .btn{width:100%; height:48px; border:none; background:var(--accent); color:var(--accent-ink); font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; cursor:pointer}
   #pvLists h4{margin-top:24px}
 
+  /* settings-style groups */
+  .setgroup{border:1px solid var(--line); margin-top:18px; background:var(--panel)}
+  .setgroup-h{display:flex; align-items:center; justify-content:space-between; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:800; color:var(--muted); background:var(--panel2); border-bottom:1px solid var(--line)}
+  .setgroup-h .cnt{font-family:var(--mono); color:var(--accent); font-weight:700; letter-spacing:0}
+  .setpad{padding:16px}
+  .setrow{border-bottom:1px solid var(--line)}
+  .setgroup > .setrow:last-child{border-bottom:none}
+  .setrow > summary{list-style:none; display:flex; align-items:center; gap:10px; padding:15px 16px; cursor:pointer; font-size:14.5px; font-weight:650; color:var(--ink)}
+  .setrow > summary::-webkit-details-marker{display:none}
+  .setrow > summary .cnt{margin-left:auto; font-family:var(--mono); color:var(--accent); font-weight:700; font-size:13px}
+  .setrow > summary::after{content:"›"; color:var(--faint); font-size:20px; line-height:1; transition:transform .2s}
+  .setrow[open] > summary::after{transform:rotate(90deg)}
+  .setrow-body{padding:0 16px 16px}
+  .setrow.inline{border:1px solid var(--line); margin-top:14px}
+  .setrow.inline > summary{padding:12px 14px; font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.1em}
+  .setbtn{width:100%; height:48px; border:1px solid var(--hair); background:var(--panel); color:var(--ink); font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; cursor:pointer}
+  .setbtn:active{transform:translateY(1px)}
+  .setbtn.ghost{background:none}
+  .setline{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; font-size:14px; font-weight:700}
+  .setline .mono{font-family:var(--mono); font-size:12px; color:var(--good); font-weight:700}
+
   @media(max-width:380px){ .app{padding:0 16px} .flag{font-size:clamp(34px,13vw,60px)} .poster{width:96px} .rec.best .poster{width:118px} }
   @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 
@@ -395,22 +416,28 @@
     <div class="pv-hero" id="pvHero"></div>
     <div id="pvLockNotice"></div>
     <div id="pvBuild">
-      <div class="pv-sec">
-        <h4 class="pv-h">Your taste <span class="pv-note">pick as many as you like</span></h4>
-        <div class="chips tastechips" id="onbGenres"></div>
+      <div class="setgroup">
+        <div class="setgroup-h">Favourite genres</div>
+        <div class="setpad">
+          <div class="chips tastechips" id="onbGenres"></div>
+          <p class="mhint">Pick as many as you like — tonight's picks get nudged toward these.</p>
+        </div>
       </div>
-      <div class="pv-sec">
-        <h4 class="pv-h">Add favourites</h4>
-        <input class="ob-search" id="onbSearch" type="search" placeholder="Search any movie or show…" autocomplete="off" autocapitalize="none">
-        <div class="ob-results" id="onbResults"></div>
-        <h4 class="ob-h">Your favourites <span id="onbMineCount" style="text-transform:none;letter-spacing:0;color:var(--accent);font-weight:800">0</span></h4>
-        <div class="ob-suggest" id="onbMine"></div>
-        <h4 class="ob-h">Quick-add from these</h4>
-        <div class="ob-suggest" id="onbSuggest"></div>
+      <div class="setgroup">
+        <div class="setgroup-h">Favourites <span class="cnt" id="onbMineCount">0</span></div>
+        <div class="setpad">
+          <input class="ob-search" id="onbSearch" type="search" placeholder="Search any movie or show…" autocomplete="off" autocapitalize="none">
+          <div class="ob-results" id="onbResults"></div>
+          <div class="ob-suggest" id="onbMine" style="margin-top:12px"></div>
+          <details class="setrow inline"><summary>Suggestions to quick-add</summary><div class="setrow-body"><div class="ob-suggest" id="onbSuggest"></div></div></details>
+        </div>
       </div>
-      <div class="pv-sec" id="onbLock"></div>
+      <div class="setgroup">
+        <div class="setgroup-h">Privacy</div>
+        <div class="setpad" id="onbLock"></div>
+      </div>
     </div>
-    <div class="listcol" id="pvLists"></div>
+    <div id="pvLists"></div>
   </div>
 </div>
 
@@ -827,6 +854,15 @@
   function updateHero(){ var el=document.getElementById("pvHero"); if(!el) return;
     el.innerHTML='<div class="pv-av '+profile+'">'+(profile==="both"?"❤":profile==="sulay"?"S":"T")+'</div><div><div class="pv-name">'+nameOf(profile)+(isClaimed(profile)?(canEdit(profile)?" 🔓":" 🔒"):"")+'</div><div class="pv-stats">'+statsLine()+'</div></div>';
   }
+  function listRow(title,obj,key,scoreMode,ed,dim){
+    var keys=Object.keys(obj);
+    var body = keys.length ? '<ul>'+keys.map(function(n){ var e=obj[n], sc='';
+        if(scoreMode==="solo"&&e&&e.score!=null) sc='<span class="sc">'+e.score+'/10</span>';
+        else if(scoreMode==="both"&&e&&e.s!=null) sc='<span class="sc">S'+e.s+' · T'+e.t+'</span>';
+        var x=(ed===false)?'':' <span class="x" data-k="'+key+'" data-n="'+encodeURIComponent(n)+'">✕</span>';
+        return '<li'+(dim?' style="opacity:.7"':'')+'>'+n+sc+x+'</li>'; }).join("")+'</ul>' : '<p class="mhint" style="margin:2px 0 0">Nothing yet.</p>';
+    return '<details class="setrow"><summary>'+title+'<span class="cnt">'+keys.length+'</span></summary><div class="setrow-body">'+body+'</div></details>';
+  }
   function renderProfile(){
     var nm=nameOf(profile), ed=canEdit(profile), solo=profile!=="both";
     document.querySelectorAll("#pvTabs .ptab").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.p===profile?"true":"false"); });
@@ -835,24 +871,25 @@
     if(solo && ed){ build.style.display=""; notice.innerHTML=""; populateBuilder(profile); }
     else if(solo && !ed){
       build.style.display="none";
-      notice.innerHTML='<div class="pv-lock"><p>🔒 '+nm+'’s profile is locked. Only '+nm+' (with the PIN) can change its favourites and taste — you can still view it and get picks.</p><button class="btn" id="pvUnlock" type="button">Unlock on this device</button></div>';
+      notice.innerHTML='<div class="setgroup"><div class="setgroup-h">Locked</div><div class="setpad"><p class="mhint" style="margin:0 0 12px">Only '+nm+' (with the PIN) can change this profile. You can still view it and get picks.</p><button class="setbtn" id="pvUnlock" type="button">🔓 Unlock on this device</button></div></div>';
       document.getElementById("pvUnlock").onclick=function(){ openPin("enter",profile,function(){ syncProfile(); renderProfile(); }); };
     } else {
       build.style.display="none";
-      notice.innerHTML='<p class="mhint" style="margin:16px 2px 0">“Both” blends Sulay’s and Tanya’s taste for shared enjoyment. Set each person’s taste from their own tab above.</p>';
+      notice.innerHTML='<div class="setgroup"><div class="setgroup-h">Shared profile</div><div class="setpad"><p class="mhint" style="margin:0">“Both” blends Sulay’s and Tanya’s taste for shared enjoyment. Each person sets their own taste from their tab above.</p></div></div>';
     }
-    var html='';
-    html+=listBlock("Watchlist", watchlist(), "sp_wl_"+profile, false, ed);
+    var rows='';
+    rows+=listRow("Watchlist", watchlist(), "sp_wl_"+profile, false, ed, false);
     if(profile==="both"){
-      html+=listBlock("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both", true);
-      html+=listBlock("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both", true);
-      html+='<h4>Watched together (seed) <span class="c">'+LIKED_SEED.length+'</span></h4><ul>'+LIKED_SEED.map(function(n){return '<li style="opacity:.6">'+n+'</li>';}).join("")+'</ul>';
+      rows+=listRow("Both liked", LS.get("sp_liked_both",{}), "sp_liked_both", "both", true, false);
+      rows+=listRow("Both disliked", LS.get("sp_disliked_both",{}), "sp_disliked_both", "both", true, false);
+      rows+=listRow("Watched together", (function(){var o={};LIKED_SEED.forEach(function(n){o[n]=1;});return o;})(), "", null, false, true);
     } else {
-      html+=listBlock(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo", ed);
-      html+=listBlock(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo", ed);
+      rows+=listRow(nm+" liked", likedOf(profile), "sp_liked_"+profile, "solo", ed, false);
+      rows+=listRow(nm+" disliked", dislikedOf(profile), "sp_disliked_"+profile, "solo", ed, false);
     }
-    var lists=document.getElementById("pvLists"); lists.innerHTML=html;
-    lists.querySelectorAll(".x").forEach(function(x){ x.onclick=function(){ var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderProfile(); }; });
+    var lists=document.getElementById("pvLists");
+    lists.innerHTML='<div class="setgroup"><div class="setgroup-h">Lists</div>'+rows+'</div>';
+    lists.querySelectorAll(".x").forEach(function(x){ x.onclick=function(e){ e.preventDefault(); e.stopPropagation(); var m=LS.get(x.dataset.k,{}); delete m[decodeURIComponent(x.dataset.n)]; LS.set(x.dataset.k,m); renderProfile(); }; });
   }
 
   // ---- onboarding / favourites builder ----
@@ -887,10 +924,11 @@
   function renderOnbLock(p){
     var el=document.getElementById("onbLock");
     if(!isClaimed(p)){
-      el.innerHTML='<button class="rbtn" id="onbLockBtn" type="button">🔒 Lock so only '+nameOf(p)+' can edit this profile</button>';
-      document.getElementById("onbLockBtn").onclick=function(){ openPin("set",p,function(){ renderOnbLock(p); }); };
+      el.innerHTML='<button class="setbtn" id="onbLockBtn" type="button">🔒 Lock so only '+nameOf(p)+' can edit</button><p class="mhint">Sets a 4-digit PIN. A light lock for shared use — not strong security.</p>';
+      document.getElementById("onbLockBtn").onclick=function(){ openPin("set",p,function(){ renderOnbLock(p); updateHero(); }); };
     } else {
-      el.innerHTML='<div class="mhint">🔒 Locked'+(deviceUnlocked(p)?" — you’re unlocked on this device.":".")+'</div>';
+      el.innerHTML='<div class="setline"><span>🔒 Locked with a PIN</span><span class="mono">'+(deviceUnlocked(p)?"unlocked here":"locked")+'</span></div><button class="setbtn ghost" id="onbRelock" type="button">Change PIN</button>';
+      document.getElementById("onbRelock").onclick=function(){ openPin("set",p,function(){ renderOnbLock(p); }); };
     }
   }
 
