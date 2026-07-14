@@ -1,7 +1,7 @@
 // Cloudflare Worker entry. Serves the static app from /public and answers the
 // /api/verify data endpoint. Deployed with `npx wrangler deploy`.
 import { verify, preflight } from "./src/verify.js";
-import { getState, postState, search } from "./src/state.js";
+import { getState, postState, search, discover } from "./src/state.js";
 
 export default {
   async fetch(request, env) {
@@ -15,6 +15,9 @@ export default {
     }
     if (pathname === "/api/search") {
       return search(request, env);
+    }
+    if (pathname === "/api/discover") {
+      return discover(request, env);
     }
     const res = await env.ASSETS.fetch(request);
     const ct = res.headers.get("content-type") || "";

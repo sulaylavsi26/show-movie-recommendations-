@@ -575,6 +575,7 @@
     if(sel.format!=="either" && t.format!==sel.format) return false;
     if(sel.language==="en" && t.langs.indexOf("en")<0) return false;
     if(sel.language==="hi" && t.langs.indexOf("hi")<0) return false;
+    if(t.discover) return true;                    // discover candidates: type/language already matched
     switch(sel.commitment){
       case "short": if(!(t.format==="movie" && t.runtime<100)) return false; break;
       case "movie": if(t.format!=="movie") return false; break;
@@ -601,6 +602,31 @@
     return Math.max(46, Math.min(99, Math.round(raw*100)));
   }
 
+  // ---- endless catalogue via TMDb discover (tops up when curated runs short) ----
+  var GENRES={ funny:{movie:35,tv:35}, thriller:{movie:53,tv:10759}, mystery:{movie:9648,tv:9648}, action:{movie:28,tv:10759}, warm:{movie:35,tv:35}, glossy:{movie:10749,tv:18}, crime:{movie:80,tv:80} };
+  var discoverPage=1, filling=false;
+  function moodGenres(tp){ var g={}; sel.moods.forEach(function(m){ if(GENRES[m]) g[GENRES[m][tp]]=1; }); return Object.keys(g).join(","); }
+  function discoverTypes(){ return sel.format==="movie"?["movie"] : sel.format==="series"?["tv"] : ["tv","movie"]; }
+  function moodLabel(){ if(!sel.moods.length) return "crowd-pleasing"; var L={funny:"comedy",thriller:"thriller",mystery:"mystery",action:"action",warm:"feel-good",glossy:"glossy",crime:"crime"}; return sel.moods.map(function(m){return L[m]||m;}).join(" / "); }
+  function mkCand(x, fmt){
+    return { id:"tmdb-"+fmt+"-"+x.id, title:x.title, format:fmt, langs:["en","hi"], platform:"—", prio:0.8, access:"Included",
+      imdb:(x.vote? +(+x.vote).toFixed(1):7), rtC:null, rtA:null, pace:"Moderate", tone:"Balanced", runtime:0, eps:(x.year||"—"), seasons:2, epLen:45, limited:false,
+      moods: sel.moods.slice(), baseTaste:0.62, novelty:0.8, warn:null, drawback:null, _poster:x.poster, _year:x.year, discover:true,
+      why: "A well-rated "+moodLabel()+" "+(fmt==="movie"?"film":"series")+" streaming in India that's new to you — pulled from the wider catalogue to match tonight's mood, so it's a fresh find beyond your usual list." };
+  }
+  function fillFromDiscover(){
+    if(filling) return; filling=true;
+    var types=discoverTypes();
+    Promise.all(types.map(function(tp){ var g=moodGenres(tp);
+      return fetch("/api/discover?type="+tp+(g?"&genres="+g:"")+"&page="+discoverPage).then(function(r){return r.ok?r.json():null;}).then(function(d){return (d&&d.results)||[];}).catch(function(){return [];});
+    })).then(function(lists){
+      discoverPage++; if(discoverPage>20) discoverPage=1;
+      var have={}; current.forEach(function(c){have[c.t.title.toLowerCase()]=1;}); C.forEach(function(c){have[c.title.toLowerCase()]=1;});
+      lists.forEach(function(res,idx){ var fmt=types[idx]==="tv"?"series":"movie"; res.forEach(function(x){ if(!x.title) return; var key=x.title.toLowerCase(); if(have[key]) return; have[key]=1; var c=mkCand(x,fmt); if(isWatched(c)||sessionExcluded[c.id]||!passFilters(c)) return; if(current.length<3) current.push({t:c,s:score(c)}); }); });
+      filling=false; render();
+    }).catch(function(){ filling=false; render(); });
+  }
+
   function recommend(){
     var pool = C.filter(passFilters);
     if(mode==="emergency") pool = C.filter(function(t){ return !isWatched(t) && !sessionExcluded[t.id]; });
@@ -615,6 +641,7 @@
     }
     current = scored.slice(0,3);
     hasRun = true;
+    if(current.length<3) fillFromDiscover();       // never run out — top up from TMDb
     render();
   }
 
@@ -639,8 +666,8 @@
     var drawHTML = (best && t.drawback) ? '<p class="flag"><span class="k">•</span><span>'+t.drawback+'</span></p>' : '';
     return ''+
     '<article class="rec'+(best?' best':'')+'" data-id="'+t.id+'">'+
-      '<div class="poster shimmer" data-poster data-init="'+initials(t.title)+'">'+
-        '<img class="pimg" alt="" loading="lazy">'+
+      '<div class="poster'+(t._poster?' has':' shimmer')+'" data-poster data-init="'+initials(t.title)+'">'+
+        '<img class="pimg" alt="" loading="lazy"'+(t._poster?' src="'+t._poster+'"':'')+'>'+
         '<span class="matchbadge">'+x.s+'<small>%</small></span>'+
       '</div>'+
       '<div class="rbody">'+
@@ -675,7 +702,7 @@
     R.innerHTML="";
     document.getElementById("dock").classList.add("show");
     if(!current.length){
-      R.appendChild(el('<div class="empty">Nothing unwatched matches that exact combo. Loosen a filter or tap <b>Emergency pick</b>.</div>'));
+      R.appendChild(el('<div class="empty">'+(filling?'Finding more titles from the full India catalogue…':'No matches right now — tap a mood or <b>Emergency pick</b>.')+'</div>'));
       return;
     }
     var head = mode==="emergency" ? "Emergency picks" : mode==="roulette" ? "Roulette — three spun up" : "Best pick tonight";
@@ -727,7 +754,8 @@
     var cached=liveGet(t.id);
     if(cached){ applyLive(root, cached, st); return; }
     st.textContent='Checking…'; st.className='vstat checking';
-    fetch(API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(YEARS[t.id]?"&year="+YEARS[t.id]:""))
+    var yr=YEARS[t.id]||t._year||"";
+    fetch(API+"?title="+encodeURIComponent(t.title)+"&type="+t.format+(yr?"&year="+yr:""))
       .then(function(r){ if(!r.ok) throw 0; return r.json(); })
       .then(function(d){ if(!d||d.error) throw 0; liveSet(t.id,d); applyLive(root,d,st); })
       .catch(function(){ st.textContent='Curated'; st.className='vstat'; var p=root.querySelector('[data-poster]'); if(p) p.classList.remove('shimmer'); });

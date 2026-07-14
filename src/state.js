@@ -72,6 +72,45 @@ export async function postState(request, env) {
   return j(merged);
 }
 
+async function getJSON(url) {
+  try { const r = await fetch(url, { cf: { cacheTtl: 3600, cacheEverything: true } }); return r.ok ? await r.json() : null; }
+  catch (_) { return null; }
+}
+
+// India-available titles from TMDb's full catalogue, filtered by genre.
+// The frontend uses these to top up recommendations so it never runs dry.
+export async function discover(request, env) {
+  const url = new URL(request.url);
+  const type = url.searchParams.get("type") === "movie" ? "movie" : "tv";
+  const genres = url.searchParams.get("genres") || "";
+  const page = url.searchParams.get("page") || "1";
+  if (!env.TMDB_API_KEY) return new Response(JSON.stringify({ results: [] }), { headers: { "content-type": "application/json", "access-control-allow-origin": "*" } });
+  const p = new URLSearchParams({
+    api_key: env.TMDB_API_KEY,
+    watch_region: "IN",
+    with_watch_providers: "8|119|122|350|237",       // Netflix, Prime, JioHotstar, Apple TV+, SonyLIV
+    with_watch_monetization_types: "flatrate",
+    without_genres: "27",                             // no horror
+    "vote_count.gte": "60",
+    sort_by: "popularity.desc",
+    include_adult: "false",
+    page,
+  });
+  if (genres) p.set("with_genres", genres);
+  const data = await getJSON(`https://api.themoviedb.org/3/discover/${type}?${p}`);
+  const results = (((data && data.results) || []).map((x) => ({
+    id: x.id,
+    title: x.title || x.name,
+    year: (x.release_date || x.first_air_date || "").slice(0, 4),
+    type: type === "tv" ? "series" : "movie",
+    poster: x.poster_path ? "https://image.tmdb.org/t/p/w342" + x.poster_path : null,
+    vote: x.vote_average,
+  })));
+  return new Response(JSON.stringify({ results }), {
+    headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" },
+  });
+}
+
 export async function search(request, env) {
   const q = (new URL(request.url).searchParams.get("q") || "").trim();
   if (!q || !env.TMDB_API_KEY) return j({ results: [] });
